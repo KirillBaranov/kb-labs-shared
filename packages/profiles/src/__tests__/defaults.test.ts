@@ -40,29 +40,31 @@ describe('defaults', () => {
 
     it('should have sources object with arrays', () => {
       expect(DEFAULT_PROFILE.sources).toBeDefined();
-      expect(Array.isArray(DEFAULT_PROFILE.sources.rules)).toBe(true);
-      expect(Array.isArray(DEFAULT_PROFILE.sources.adr)).toBe(true);
-      expect(Array.isArray(DEFAULT_PROFILE.sources.docs)).toBe(true);
-      expect(Array.isArray(DEFAULT_PROFILE.sources.api)).toBe(true);
-      expect(Array.isArray(DEFAULT_PROFILE.sources.src)).toBe(true);
-      expect(Array.isArray(DEFAULT_PROFILE.sources.tests)).toBe(true);
+      expect(DEFAULT_PROFILE.sources).not.toBeUndefined();
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.rules)).toBe(true);
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.adr)).toBe(true);
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.docs)).toBe(true);
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.api)).toBe(true);
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.src)).toBe(true);
+      expect(Array.isArray(DEFAULT_PROFILE.sources!.tests)).toBe(true);
     });
 
     it('should have policies object', () => {
       expect(DEFAULT_PROFILE.policies).toBeDefined();
-      expect(typeof DEFAULT_PROFILE.policies.maxBytes).toBe('number');
-      expect(DEFAULT_PROFILE.policies.maxBytes).toBe(1_500_000);
-      expect(typeof DEFAULT_PROFILE.policies.privacy).toBe('string');
-      expect(DEFAULT_PROFILE.policies.privacy).toBe('team');
+      expect(DEFAULT_PROFILE.policies).not.toBeUndefined();
+      expect(typeof DEFAULT_PROFILE.policies!.maxBytes).toBe('number');
+      expect(DEFAULT_PROFILE.policies!.maxBytes).toBe(1_500_000);
+      expect(typeof DEFAULT_PROFILE.policies!.privacy).toBe('string');
+      expect(DEFAULT_PROFILE.policies!.privacy).toBe('team');
     });
 
     it('should have expected source patterns', () => {
-      expect(DEFAULT_PROFILE.sources.rules).toEqual(['rules/**']);
-      expect(DEFAULT_PROFILE.sources.adr).toEqual(['adr/**']);
-      expect(DEFAULT_PROFILE.sources.docs).toEqual(['docs/**']);
-      expect(DEFAULT_PROFILE.sources.api).toEqual(['api/**']);
-      expect(DEFAULT_PROFILE.sources.src).toEqual(['src/**']);
-      expect(DEFAULT_PROFILE.sources.tests).toEqual(['tests/**']);
+      expect(DEFAULT_PROFILE.sources!.rules).toEqual(['rules/**']);
+      expect(DEFAULT_PROFILE.sources!.adr).toEqual(['adr/**']);
+      expect(DEFAULT_PROFILE.sources!.docs).toEqual(['docs/**']);
+      expect(DEFAULT_PROFILE.sources!.api).toEqual(['api/**']);
+      expect(DEFAULT_PROFILE.sources!.src).toEqual(['src/**']);
+      expect(DEFAULT_PROFILE.sources!.tests).toEqual(['tests/**']);
     });
 
     it('should be immutable reference', () => {

@@ -73,7 +73,7 @@ describe('resolveProfile', () => {
     });
 
     expect(result.profile.id).toBe('test-profile');
-    expect(result.profile.sources.rules).toEqual(['rules/**', 'custom-rules/**']);
+    expect(result.profile.sources!.rules).toEqual(['rules/**', 'custom-rules/**']);
     expect(result.files).toHaveLength(1);
     expect(result.files[0]!.path).toBe('/repo/profiles/test-profile/profile.json');
   });
@@ -118,7 +118,7 @@ describe('resolveProfile', () => {
     });
 
     expect(result.profile.id).toBe('child');
-    expect(result.profile.sources.rules).toEqual(['rules/**', 'parent-rules/**', 'child-rules/**']);
+    expect(result.profile.sources!.rules).toEqual(['rules/**', 'parent-rules/**', 'child-rules/**']);
     expect(result.files).toHaveLength(2);
   });
 
@@ -189,7 +189,7 @@ describe('resolveProfile', () => {
       }
     });
 
-    expect(result.profile.policies.maxBytes).toBe(2000000);
+    expect(result.profile.policies!.maxBytes).toBe(2000000);
   });
 
   it('should apply environment mapper', async () => {
@@ -217,7 +217,7 @@ describe('resolveProfile', () => {
       envMapper
     });
 
-    expect(result.profile.policies.maxBytes).toBe(5000000);
+    expect(result.profile.policies!.maxBytes).toBe(5000000);
   });
 
   it('should apply overrides in correct order', async () => {
@@ -251,7 +251,7 @@ describe('resolveProfile', () => {
     });
 
     // CLI override should win over env mapper
-    expect(result.profile.policies.maxBytes).toBe(4000000);
+    expect(result.profile.policies!.maxBytes).toBe(4000000);
   });
 
   it('should validate final profile', async () => {
@@ -348,7 +348,7 @@ describe('resolveProfile', () => {
       profileId: 'child'
     });
 
-    expect(result.profile.sources.rules).toEqual([
+    expect(result.profile.sources!.rules).toEqual([
       'rules/**',
       'grandparent-rules/**',
       'parent-rules/**',

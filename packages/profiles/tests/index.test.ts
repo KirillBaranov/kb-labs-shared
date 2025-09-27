@@ -26,14 +26,14 @@ describe('@kb-labs/shared-profiles integration', () => {
     const merged = mergeProfiles(baseProfile, overrideProfile);
     const validation = validateProfile(merged);
 
-    expect(merged.sources.rules).toEqual(['rules/**', 'custom-rules/**']);
-    expect(merged.policies.maxBytes).toBe(2000000);
+    expect(merged.sources!.rules).toEqual(['rules/**', 'custom-rules/**']);
+    expect(merged.policies!.maxBytes).toBe(2000000);
     expect(validation.ok).toBe(true);
   });
 
   it('should work with default profile', () => {
     const validation = validateProfile(DEFAULT_PROFILE);
     expect(validation.ok).toBe(true);
-    expect(DEFAULT_PROFILE.sources.src).toEqual(['src/**']);
+    expect(DEFAULT_PROFILE.sources!.src).toEqual(['src/**']);
   });
 });

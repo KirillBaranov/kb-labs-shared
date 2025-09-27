@@ -73,7 +73,7 @@ describe('@kb-labs/shared-profiles exports', () => {
     const validation = validateProfile(merged);
 
     expect(merged.id).toBe('override');
-    expect(merged.sources.rules).toEqual(['rules/**', 'custom-rules/**']);
+    expect(merged.sources!.rules).toEqual(['rules/**', 'custom-rules/**']);
     expect(validation.ok).toBe(true);
   });
 
