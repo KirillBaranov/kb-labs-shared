@@ -9,14 +9,37 @@ export function safeMatchAll(s: string, re: RegExp): RegExpExecArray[] {
     const rx = new RegExp(re.source, flags);
     const out: RegExpExecArray[] = [];
     let m: RegExpExecArray | null;
-    while ((m = rx.exec(s))) {out.push(m);}
+    let lastIndex = 0;
+    let iterations = 0;
+
+    while ((m = rx.exec(s))) {
+        out.push(m);
+        iterations++;
+
+        // Prevent infinite loop: if lastIndex didn't advance, break
+        if (rx.lastIndex === lastIndex) {
+            // For empty matches (like /(?=hello)/), allow one more iteration
+            if (m[0].length === 0 && iterations === 1) {
+                lastIndex = rx.lastIndex;
+                continue;
+            }
+            break;
+        }
+        lastIndex = rx.lastIndex;
+
+        // Safety check: limit number of matches to prevent memory issues
+        if (out.length > 10000) {
+            break;
+        }
+    }
+
     return out;
 }
 
 /** Wrap all matches with markers (does not mutate the pattern) */
 export function highlightMatches(s: string, pattern: RegExp, markerStart = "[[", markerEnd = "]]"): string {
     const matches = safeMatchAll(s, pattern);
-    if (!matches.length) {return s;}
+    if (!matches.length) { return s; }
     // rebuild using indices to avoid nested replacements
     let out = "";
     let last = 0;
