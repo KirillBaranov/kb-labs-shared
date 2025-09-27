@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { promises as fsp } from 'node:fs';
-import path from 'node:path';
 import { loadProfileFileFromFS } from '../loaderFs';
 
 // Mock fs promises
