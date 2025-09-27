@@ -9,14 +9,14 @@ export function safeMatchAll(s: string, re: RegExp): RegExpExecArray[] {
     const rx = new RegExp(re.source, flags);
     const out: RegExpExecArray[] = [];
     let m: RegExpExecArray | null;
-    while ((m = rx.exec(s))) out.push(m);
+    while ((m = rx.exec(s))) {out.push(m);}
     return out;
 }
 
 /** Wrap all matches with markers (does not mutate the pattern) */
 export function highlightMatches(s: string, pattern: RegExp, markerStart = "[[", markerEnd = "]]"): string {
     const matches = safeMatchAll(s, pattern);
-    if (!matches.length) return s;
+    if (!matches.length) {return s;}
     // rebuild using indices to avoid nested replacements
     let out = "";
     let last = 0;

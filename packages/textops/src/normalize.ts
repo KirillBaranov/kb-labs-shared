@@ -1,13 +1,13 @@
 /** Normalize all line endings to \n */
 export function normalizeLineEndings(s: string): string {
-    if (!s) return s;
+    if (!s) {return s;}
     return s.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
 /** Strip ANSI escape sequences */
 export function stripAnsi(s: string): string {
-    if (!s) return s;
-    // eslint-disable-next-line no-control-regex
+    if (!s) {return s;}
+     
     const re = /\u001B\[[0-9;]*[A-Za-z]/g;
     return s.replace(re, "");
 }
@@ -21,37 +21,37 @@ export function normalizeWhitespace(s: string): string {
 export function trimLines(s: string): string {
     const lines = normalizeLineEndings(s).split("\n").map(l => l.trimEnd());
     // drop leading empties
-    while (lines.length && lines[0]!.trim() === "") lines.shift();
+    while (lines.length && lines[0]!.trim() === "") {lines.shift();}
     // drop trailing empties
-    while (lines.length && lines[lines.length - 1]!.trim() === "") lines.pop();
+    while (lines.length && lines[lines.length - 1]!.trim() === "") {lines.pop();}
     return lines.join("\n");
 }
 
 /** Safe split to lines (normalizes CRLF) */
 export function splitLines(s: string): string[] {
-    if (!s) return [];
+    if (!s) {return [];}
     return normalizeLineEndings(s).split("\n");
 }
 
 /** Very rough token estimate (space/punct splitting) */
 export function estimateTokens(s: string): number {
-    if (!s) return 0;
+    if (!s) {return 0;}
     const parts = s.trim().split(/[\s.,;:!?()[\]{}"'+=*\\/|-]+/g).filter(Boolean);
     return parts.length;
 }
 
 /** Truncate string to approx maxTokens, preserving whole lines by default */
 export function truncateByTokens(s: string, maxTokens: number, opts?: { preserveLines?: boolean }): string {
-    if (!s) return s;
-    if (estimateTokens(s) <= maxTokens) return s;
+    if (!s) {return s;}
+    if (estimateTokens(s) <= maxTokens) {return s;}
 
     if (opts?.preserveLines !== false) {
         const lines = splitLines(s);
-        let out: string[] = [];
+        const out: string[] = [];
         let count = 0;
         for (const ln of lines) {
             const c = estimateTokens(ln);
-            if (count + c > maxTokens) break;
+            if (count + c > maxTokens) {break;}
             out.push(ln);
             count += c;
         }
@@ -63,7 +63,7 @@ export function truncateByTokens(s: string, maxTokens: number, opts?: { preserve
         let end = 0;
         for (; end < words.length; end++) {
             const c = estimateTokens(words[end]!);
-            if (count + c > maxTokens) break;
+            if (count + c > maxTokens) {break;}
             count += c;
         }
         return words.slice(0, end).join(" ");
@@ -80,13 +80,13 @@ export function splitMarkdownSections(md: string): { heading: string; body: stri
         const m = ln.match(/^(#{1,3})\s+(.*)$/); // H1–H3
         if (m) {
             // flush previous
-            if (curBody.length) sections.push({ heading: curHead, body: curBody.join("\n") });
+            if (curBody.length) {sections.push({ heading: curHead, body: curBody.join("\n") });}
             curHead = m[2]!.trim();
             curBody = [];
         } else {
             curBody.push(ln);
         }
     }
-    if (curBody.length) sections.push({ heading: curHead, body: curBody.join("\n") });
+    if (curBody.length) {sections.push({ heading: curHead, body: curBody.join("\n") });}
     return sections;
 }

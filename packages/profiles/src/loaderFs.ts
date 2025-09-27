@@ -26,7 +26,7 @@ export async function loadProfileFileFromFS(opts: {
             const data = JSON.parse(raw);
             return { file: { path: p, data }, diagnostics };
         } catch (e: any) {
-            if (e?.code === "ENOENT") continue;
+            if (e?.code === "ENOENT") {continue;}
             diagnostics.push({ level: "warn", code: "PROFILE_READ_FAILED", message: `Failed to read ${p}`, detail: String(e) });
         }
     }

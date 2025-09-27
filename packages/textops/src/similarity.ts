@@ -1,11 +1,11 @@
 /** Levenshtein distance (iterative DP, O(n*m)) */
 export function levenshtein(a: string, b: string): number {
     const n = a.length, m = b.length;
-    if (n === 0) return m;
-    if (m === 0) return n;
+    if (n === 0) {return m;}
+    if (m === 0) {return n;}
 
     const dp = new Array(m + 1);
-    for (let j = 0; j <= m; j++) dp[j] = j;
+    for (let j = 0; j <= m; j++) {dp[j] = j;}
 
     for (let i = 1; i <= n; i++) {
         let prev = dp[0];
@@ -26,7 +26,7 @@ export function levenshtein(a: string, b: string): number {
 
 /** Similarity in [0,1], 1 when strings are equal. */
 export function similarity(a: string, b: string): number {
-    if (!a && !b) return 1;
+    if (!a && !b) {return 1;}
     const dist = levenshtein(a, b);
     const maxLen = Math.max(a.length, b.length);
     return maxLen ? 1 - dist / maxLen : 1;
@@ -35,7 +35,7 @@ export function similarity(a: string, b: string): number {
 /** Longest common substring (returns the substring, not subsequence) */
 export function longestCommonSubstr(a: string, b: string): string {
     const n = a.length, m = b.length;
-    if (!n || !m) return "";
+    if (!n || !m) {return "";}
     const dp = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
     let best = 0, end = 0;
     for (let i = 1; i <= n; i++) {

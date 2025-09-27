@@ -1,4 +1,4 @@
-import { ModuleBoundariesSpec } from "./types";
+import type { ModuleBoundariesSpec } from "./types";
 
 /**
  * Simple checker factory.
@@ -15,10 +15,10 @@ export function makeImportChecker(spec: ModuleBoundariesSpec) {
         for (const p of patterns) {
             if (p.endsWith("/**")) {
                 const base = p.slice(0, -3);
-                if (path === base || path.startsWith(base)) return true;
+                if (path === base || path.startsWith(base)) {return true;}
             } else if (p.endsWith("/*")) {
                 const base = p.slice(0, -2);
-                if (path.startsWith(base) && !path.slice(base.length + 1).includes("/")) return true;
+                if (path.startsWith(base) && !path.slice(base.length + 1).includes("/")) {return true;}
             } else if (p === path || path.startsWith(p)) {
                 return true;
             }
@@ -29,8 +29,8 @@ export function makeImportChecker(spec: ModuleBoundariesSpec) {
     return function isAllowedImport(fromPath: string, toPath: string): boolean {
         // find module of "from"
         const owner = index.find(r => matchAny(fromPath, r.files));
-        if (!owner) return true; // out of scope → not restricted
-        if (owner.allowed.length === 0) return true; // no restrictions set
+        if (!owner) {return true;} // out of scope → not restricted
+        if (owner.allowed.length === 0) {return true;} // no restrictions set
         return matchAny(toPath, owner.allowed);
     };
 }

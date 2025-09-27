@@ -1,4 +1,4 @@
-import { DiffLineAdd } from "./types";
+import type { DiffLineAdd } from "./types";
 
 /**
  * Fast pass to collect +/- lines per file without full hunk AST.
@@ -26,7 +26,7 @@ export function addedLinesByFile(diff: string): Record<string, DiffLineAdd[]> {
             newLine++;
         } else if (file && !line.startsWith("-")) {
             // context line (skip headers)
-            if (line && !line.startsWith("@@")) newLine++;
+            if (line && !line.startsWith("@@")) {newLine++;}
         }
     }
     return out;

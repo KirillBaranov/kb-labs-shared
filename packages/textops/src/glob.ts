@@ -16,7 +16,7 @@ export function matchGlob(path: string, patterns: string[]): boolean {
     const p = normalizeGlob(path);
     for (const pat of patterns) {
         const g = normalizeGlob(pat);
-        if (matchOne(p, g)) return true;
+        if (matchOne(p, g)) {return true;}
     }
     return false;
 }
@@ -42,17 +42,17 @@ function matchSegments(ps: string[], gs: string[], pi: number, gi: number): bool
         const g = gs[gi]!;
         if (g === "**") {
             // try to consume zero or more segments
-            if (gi === gs.length - 1) return true; // trailing ** matches all
+            if (gi === gs.length - 1) {return true;} // trailing ** matches all
             for (let skip = 0; pi + skip <= ps.length; skip++) {
-                if (matchSegments(ps, gs, pi + skip, gi + 1)) return true;
+                if (matchSegments(ps, gs, pi + skip, gi + 1)) {return true;}
             }
             return false;
         }
-        if (!matchSegment(ps[pi]!, g)) return false;
+        if (!matchSegment(ps[pi]!, g)) {return false;}
         pi++; gi++;
     }
     // consume trailing ** in glob
-    while (gi < gs.length && gs[gi] === "**") gi++;
+    while (gi < gs.length && gs[gi] === "**") {gi++;}
     return pi === ps.length && gi === gs.length;
 }
 
@@ -61,9 +61,9 @@ function matchSegment(seg: string, pat: string): boolean {
     let rx = "^";
     for (let i = 0; i < pat.length; i++) {
         const ch = pat[i]!;
-        if (ch === "*") rx += ".*";
-        else if (ch === "?") rx += ".";
-        else rx += escapeRegExpChar(ch);
+        if (ch === "*") {rx += ".*";}
+        else if (ch === "?") {rx += ".";}
+        else {rx += escapeRegExpChar(ch);}
     }
     rx += "$";
     return new RegExp(rx).test(seg);

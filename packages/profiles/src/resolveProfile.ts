@@ -78,10 +78,10 @@ export async function resolveProfile(opts: {
 
     // env overlay (product-defined)
     const envPart = opts.envMapper?.(process.env);
-    if (envPart) acc = mergeProfiles(acc, envPart);
+    if (envPart) {acc = mergeProfiles(acc, envPart);}
 
     // cli overrides last
-    if (opts.override) acc = mergeProfiles(acc, opts.override);
+    if (opts.override) {acc = mergeProfiles(acc, opts.override);}
 
     // validate
     const vr = validateProfile(acc);

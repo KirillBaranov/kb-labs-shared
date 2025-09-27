@@ -1,4 +1,4 @@
-import { DiffHunk, DiffLineAdd, DiffLineDel, ParsedDiff } from "./types";
+import type { DiffHunk, DiffLineAdd, DiffLineDel, ParsedDiff } from "./types";
 
 /**
  * Unified diff parser (git-like).
@@ -21,8 +21,8 @@ export function parseUnifiedDiff(diff: string): ParsedDiff {
 
     // helpers
     const pushFile = (p: string) => {
-        if (!p) return;
-        if (!files.includes(p)) files.push(p);
+        if (!p) {return;}
+        if (!files.includes(p)) {files.push(p);}
         addedByFile[p] ||= [];
         removedByFile[p] ||= [];
         hunksByFile[p] ||= [];
@@ -87,10 +87,10 @@ export function parseUnifiedDiff(diff: string): ParsedDiff {
         }
 
         // ignore any meta lines until we know the file
-        if (!curFile) continue;
+        if (!curFile) {continue;}
 
         // skip secondary headers to avoid miscounting
-        if (raw.startsWith("+++ ") || raw.startsWith("--- ")) continue;
+        if (raw.startsWith("+++ ") || raw.startsWith("--- ")) {continue;}
 
         // additions / removals / context
         if (raw.startsWith("+") && !raw.startsWith("+++")) {

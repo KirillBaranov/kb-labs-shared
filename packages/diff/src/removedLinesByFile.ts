@@ -1,4 +1,4 @@
-import { DiffLineDel } from "./types";
+import type { DiffLineDel } from "./types";
 
 /** Symmetric to addedLinesByFile: collects removed lines per file. */
 export function removedLinesByFile(diff: string): Record<string, DiffLineDel[]> {
@@ -23,7 +23,7 @@ export function removedLinesByFile(diff: string): Record<string, DiffLineDel[]> 
             out[file]!.push({ line: oldLine, text: line.slice(1) });
             oldLine++;
         } else if (file && !line.startsWith("+")) {
-            if (line && !line.startsWith("@@")) oldLine++;
+            if (line && !line.startsWith("@@")) {oldLine++;}
         }
     }
     return out;
