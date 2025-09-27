@@ -124,8 +124,7 @@ describe('mergeProfiles', () => {
 
     const over: Partial<Profile> = {
       policies: {
-        maxBytes: 2000000,
-        timeout: 30
+        maxBytes: 2000000
       }
     };
 
@@ -133,8 +132,7 @@ describe('mergeProfiles', () => {
 
     expect(result.policies).toEqual({
       maxBytes: 2000000,
-      privacy: 'team',
-      timeout: 30
+      privacy: 'team'
     });
   });
 
@@ -193,23 +191,23 @@ describe('mergeProfiles', () => {
     const base: Profile = {
       id: 'base',
       schemaVersion: '1.0.0',
-      boundaries: { enabled: true }
+      boundaries: { file: 'boundaries.json' }
     };
 
     const over: Partial<Profile> = {
-      boundaries: { enabled: false }
+      boundaries: { file: 'custom-boundaries.json' }
     };
 
     const result = mergeProfiles(base, over);
 
-    expect(result.boundaries).toEqual({ enabled: false });
+    expect(result.boundaries).toEqual({ file: 'custom-boundaries.json' });
   });
 
   it('should handle undefined boundaries', () => {
     const base: Profile = {
       id: 'base',
       schemaVersion: '1.0.0',
-      boundaries: { enabled: true }
+      boundaries: { file: 'boundaries.json' }
     };
 
     const over: Partial<Profile> = {
@@ -218,7 +216,7 @@ describe('mergeProfiles', () => {
 
     const result = mergeProfiles(base, over);
 
-    expect(result.boundaries).toEqual({ enabled: true });
+    expect(result.boundaries).toEqual({ file: 'boundaries.json' });
   });
 
   it('should preserve base properties when not overridden', () => {
