@@ -1,9 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@kb-labs/devkit/tsconfig/lib.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "noEmit": true,
     "baseUrl": "."
   },
   "include": ["src"]

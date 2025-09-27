@@ -41,8 +41,8 @@ export function longestCommonSubstr(a: string, b: string): string {
     for (let i = 1; i <= n; i++) {
         for (let j = 1; j <= m; j++) {
             if (a[i - 1] === b[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1] + 1;
-                if (dp[i][j] > best) { best = dp[i][j]; end = i; }
+                dp![i]![j] = dp![i - 1]![j - 1]! + 1;
+                if (dp![i]![j]! > best) { best = dp![i]![j]!; end = i; }
             }
         }
     }

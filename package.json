@@ -22,23 +22,32 @@
     "packages/*"
   ],
   "scripts": {
+    "// ——— devkit": "────────────────────────────────────────",
+    "devkit:sync": "node scripts/devkit-sync.mjs",
+    "devkit:sync:ci": "node scripts/devkit-sync.mjs --ci-only",
+    "devkit:check": "node scripts/devkit-sync.mjs --check",
+    "devkit:force": "node scripts/devkit-sync.mjs --force",
+    "devkit:help": "node scripts/devkit-sync.mjs --help",
+    "postinstall": "pnpm -s devkit:sync || true",
     "// ——— core": "────────────────────────────────────────",
     "build": "pnpm -r run build",
     "build:clean": "pnpm -r run clean && pnpm -r run build",
-    "dev": "pnpm -r --parallel --filter @sentinel/core --filter @sentinel/analytics --filter @sentinel/provider-* --filter @sentinel/cli run dev",
+    "dev": "pnpm -r --parallel run dev",
     "// ——— quality": "────────────────────────────────────────",
-    "lint": "pnpm -r run lint",
-    "lint:fix": "pnpm -r run lint:fix",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "type-check": "tsc -b tsconfig.tools.json",
+    "lint": "pnpm -r exec eslint .",
+    "lint:fix": "pnpm -r exec eslint . --fix",
+    "test": "pnpm -r --if-present run test",
+    "test:coverage": "pnpm -r --if-present run test --coverage",
+    "test:watch": "pnpm -r --parallel --if-present run test:watch",
+    "type-check": "pnpm -r run type-check",
+    "format": "prettier -w .",
+    "format:check": "prettier -c .",
     "// ——— ci/qa": "────────────────────────────────────────",
-    "check": "pnpm lint && pnpm type-check && pnpm test -- --run",
+    "check": "pnpm lint && pnpm type-check && pnpm test",
     "ci": "pnpm clean && pnpm build && pnpm check",
     "// ——— cleanup": "────────────────────────────────────────",
     "clean": "pnpm -r run clean",
-    "clean:all": "rimraf node_modules packages/*/node_modules apps/*/node_modules dist .sentinel",
-    "clean:analytics": "rimraf .sentinel/analytics dist/analytics dist/analytics-export"
+    "clean:all": "rimraf node_modules packages/*/node_modules apps/*/node_modules dist"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
@@ -53,22 +62,13 @@
     "@actions/github": "^6",
     "@types/node": "^24.3.3",
     "@types/picomatch": "^4",
-    "@typescript-eslint/eslint-plugin": "^8.8.0",
-    "@typescript-eslint/parser": "^8.8.0",
-    "@vitest/coverage-v8": "2.1.9",
+    "@vitest/coverage-v8": "^3.2.4",
     "better-sqlite3": "^12.2.0",
     "colorette": "^2.0.20",
-    "eslint": "^9.16.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsonc": "^2.15.1",
-    "eslint-plugin-markdown": "^3.0.1",
-    "eslint-plugin-n": "^17.10.3",
-    "eslint-plugin-unused-imports": "^4.0.0",
-    "prettier": "^3.3.3",
+    "tsup": "^8.5.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
-    "vitest": "^2.1.4"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18.18.0",
@@ -76,6 +76,7 @@
   },
   "packageManager": "pnpm@9.11.0",
   "dependencies": {
+    "@kb-labs/devkit": "github:KirillBaranov/kb-labs-devkit#main",
     "zod": "^4.1.5"
   }
 }

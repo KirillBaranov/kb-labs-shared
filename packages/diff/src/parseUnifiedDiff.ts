@@ -64,7 +64,7 @@ export function parseUnifiedDiff(diff: string): ParsedDiff {
             // "+++ b/xxx" → pick b/ and normalize
             const m = pathPart.match(/^[ab]\/(.+)$/);
             const normalized = m ? m[1] : stripPrefix(pathPart);
-            curFile = normalized.trim();
+            curFile = normalized?.trim() ?? "";
             pushFile(curFile);
             continue;
         }

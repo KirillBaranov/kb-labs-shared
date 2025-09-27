@@ -1,7 +1,10 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/package-name" },
+    { "path": "packages/boundaries" },
+    { "path": "packages/diff" },
+    { "path": "packages/profiles" },
+    { "path": "packages/textops" },
     { "path": "apps/demo" }
   ]
 }

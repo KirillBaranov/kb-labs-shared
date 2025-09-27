@@ -1,29 +1,19 @@
 {
+  "extends": "@kb-labs/devkit/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true,
-
-    "declaration": false,
+    "declaration": true,
     "declarationMap": false,
     "sourceMap": true,
-    "inlineSources": true,
-
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-
-    "baseUrl": "."
-  },
-  "exclude": [
-    "src/**/__tests__/**",
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts"
-  ]
+    "baseUrl": ".",
+    "paths": {
+      "@kb-labs/shared-boundaries": ["packages/boundaries/dist"],
+      "@kb-labs/shared-boundaries/*": ["packages/boundaries/dist/*"],
+      "@kb-labs/shared-diff": ["packages/diff/dist"],
+      "@kb-labs/shared-diff/*": ["packages/diff/dist/*"],
+      "@kb-labs/shared-profiles": ["packages/profiles/dist"],
+      "@kb-labs/shared-profiles/*": ["packages/profiles/dist/*"],
+      "@kb-labs/shared-textops": ["packages/textops/dist"],
+      "@kb-labs/shared-textops/*": ["packages/textops/dist/*"]
+    }
+  }
 }
