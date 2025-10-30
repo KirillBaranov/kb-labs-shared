@@ -124,8 +124,7 @@ export function createKBLabsCommandDiscovery(): DynamicCommandDiscovery {
     'devlink-core',
     'mind-cli', 
     'tox-cli',
-    'core',
-    'ai-review'
+    'core-cli'
   ];
 
   return new DynamicCommandDiscovery(manifestLoader, packageNames);
