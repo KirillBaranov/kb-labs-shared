@@ -42,11 +42,11 @@ export function section(header: string, content: string[]): string[] {
  * Format a table with consistent spacing
  */
 export function table(rows: (string | number)[][], headers?: string[]): string[] {
-  if (rows.length === 0) return [];
+  if (rows.length === 0) {return [];}
   
   // Calculate column widths
   const allRows = headers ? [headers, ...rows] : rows;
-  if (allRows.length === 0) return [];
+  if (allRows.length === 0) {return [];}
   
   const columnWidths = allRows[0]!.map((_, colIndex) => 
     Math.max(...allRows.map(row => String(row[colIndex] || '').length))
@@ -125,7 +125,7 @@ export function formatRelativeTime(timestamp: string | Date): string {
  * Truncate text with ellipsis
  */
 export function truncate(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
+  if (text.length <= maxLength) {return text;}
   return text.substring(0, maxLength - 3) + '...';
 }
 
@@ -133,7 +133,7 @@ export function truncate(text: string, maxLength: number): string {
  * Pad string to specific width
  */
 export function pad(text: string, width: number, align: 'left' | 'right' | 'center' = 'left'): string {
-  if (text.length >= width) return text;
+  if (text.length >= width) {return text;}
   
   const padding = width - text.length;
   

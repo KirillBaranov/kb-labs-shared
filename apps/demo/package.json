@@ -13,6 +13,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@kb-labs/devkit": "link:../../../kb-labs-devkit",
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
     "eslint": "^9.16.0",

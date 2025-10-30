@@ -122,7 +122,7 @@ export function formatKeyValueTable(
   options: { keyWidth?: number; valueWidth?: number } = {}
 ): string[] {
   const keys = Object.keys(data);
-  if (keys.length === 0) return [];
+  if (keys.length === 0) {return [];}
   
   const keyWidth = options.keyWidth || Math.max(...keys.map(k => visualWidth(k)), 0);
   const valueWidth = options.valueWidth || Math.max(...Object.values(data).map(v => visualWidth(String(v))), 0);

@@ -50,6 +50,11 @@ export function displayArtifacts(
   } else if (groupBy === 'type') {
     // Sort by type/name
     sortedArtifacts = artifacts.sort((a, b) => a.name.localeCompare(b.name));
+  } else {
+    // Default: sort by time (newest first) for better UX
+    sortedArtifacts = artifacts
+      .filter(artifact => artifact.modified)
+      .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0));
   }
   
   sortedArtifacts = sortedArtifacts.slice(0, maxItems);
@@ -65,7 +70,7 @@ export function displayArtifacts(
     // Group by artifact type
     const grouped = sortedArtifacts.reduce((acc, artifact) => {
       const type = artifact.name.split(' ')[0] || 'Other'; // First word as type
-      if (!acc[type]) acc[type] = [];
+      if (!acc[type]) {acc[type] = [];}
       acc[type].push(artifact);
       return acc;
     }, {} as Record<string, ArtifactInfo[]>);
@@ -161,18 +166,21 @@ export function displaySingleArtifact(artifact: ArtifactInfo, title?: string): s
  */
 export function displayArtifactsCompact(
   artifacts: ArtifactInfo[],
-  options: { maxItems?: number; showSize?: boolean } = {}
+  options: { maxItems?: number; showSize?: boolean; sortByTime?: boolean } = {}
 ): string[] {
-  const { maxItems = 5, showSize = true } = options;
+  const { maxItems = 5, showSize = true, sortByTime = true } = options;
   
   if (artifacts.length === 0) {
     return [];
   }
 
-  const sortedArtifacts = artifacts
-    .filter(artifact => artifact.modified)
-    .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0))
-    .slice(0, maxItems);
+  // Sort artifacts by modification time (newest first) by default
+  const sortedArtifacts = sortByTime 
+    ? artifacts
+        .filter(artifact => artifact.modified)
+        .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0))
+        .slice(0, maxItems)
+    : artifacts.slice(0, maxItems);
 
   return [
     '',

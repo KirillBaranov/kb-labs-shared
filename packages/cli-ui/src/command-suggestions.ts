@@ -171,7 +171,7 @@ export function generateQuickActions(
   registry: CommandRegistry,
   group: string = 'devlink'
 ): CommandSuggestion[] {
-  if (!hasWarnings) return [];
+  if (!hasWarnings) {return [];}
 
   const quickActions: CommandSuggestion[] = [
     {

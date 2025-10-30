@@ -175,9 +175,10 @@ The artifacts display system provides consistent, beautiful display of generated
 
 - **Consistent Formatting**: Unified display format across all CLI packages
 - **Multiple Display Modes**: Compact, detailed, and grouped views
-- **Smart Sorting**: By time, type, or custom criteria
+- **Smart Sorting**: By time (newest first) by default, with type and custom options
 - **Size & Time Info**: Human-readable file sizes and relative timestamps
 - **Path Normalization**: Shows relative paths for better readability
+- **Federal Sorting**: All CLI packages automatically get time-based sorting
 
 ### Usage
 

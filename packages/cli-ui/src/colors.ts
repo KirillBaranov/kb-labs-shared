@@ -34,16 +34,16 @@ export const symbols = {
 
 // Check if colors are supported
 export const supportsColor = (() => {
-  if (typeof process === 'undefined') return false;
+  if (typeof process === 'undefined') {return false;}
   
   // Check for NO_COLOR environment variable
-  if (process.env.NO_COLOR) return false;
+  if (process.env.NO_COLOR) {return false;}
   
   // Check if stdout is a TTY
-  if (process.stdout && !process.stdout.isTTY) return false;
+  if (process.stdout && !process.stdout.isTTY) {return false;}
   
   // Check TERM environment variable
-  if (process.env.TERM === 'dumb') return false;
+  if (process.env.TERM === 'dumb') {return false;}
   
   return true;
 })();

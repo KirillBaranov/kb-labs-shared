@@ -28,8 +28,11 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "glob": "^11.0.0"
+  },
   "devDependencies": {
-    "@kb-labs/devkit": "github:KirillBaranov/kb-labs-devkit#main",
+    "@kb-labs/devkit": "link:../../../kb-labs-devkit",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
     "typescript": "^5.6.3",

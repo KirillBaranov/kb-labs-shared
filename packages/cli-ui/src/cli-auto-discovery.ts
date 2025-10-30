@@ -59,11 +59,11 @@ export async function discoverCLIPackages(
             
             // Determine priority based on package type
             let priority = 50;
-            if (group === 'devlink') priority = 100;
-            else if (group === 'mind') priority = 80;
-            else if (group === 'tox') priority = 70;
-            else if (group === 'profiles') priority = 60;
-            else if (group === 'ai-review') priority = 50;
+            if (group === 'devlink') {priority = 100;}
+            else if (group === 'mind') {priority = 80;}
+            else if (group === 'tox') {priority = 70;}
+            else if (group === 'profiles') {priority = 60;}
+            else if (group === 'ai-review') {priority = 50;}
             
             packages.push({
               name: packageName,

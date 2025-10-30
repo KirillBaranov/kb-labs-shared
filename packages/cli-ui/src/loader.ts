@@ -34,7 +34,7 @@ export class Loader {
   }
 
   start(): void {
-    if (this.options.jsonMode || this.isActive) return;
+    if (this.options.jsonMode || this.isActive) {return;}
     
     this.isActive = true;
     this.spinnerIndex = 0;
@@ -49,7 +49,7 @@ export class Loader {
   update(options: Partial<LoaderOptions>): void {
     this.options = { ...this.options, ...options };
     
-    if (!this.isActive || this.options.jsonMode) return;
+    if (!this.isActive || this.options.jsonMode) {return;}
     
     if (this.options.spinner) {
       // Spinner updates automatically
@@ -87,7 +87,7 @@ export class Loader {
 
   private startSpinner(): void {
     this.interval = setInterval(() => {
-      if (!this.isActive) return;
+      if (!this.isActive) {return;}
       
       const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
       const text = this.options.text ?? 'Loading...';
@@ -99,7 +99,7 @@ export class Loader {
   }
 
   private updateProgress(): void {
-    if (this.options.total === undefined || this.options.current === undefined) return;
+    if (this.options.total === undefined || this.options.current === undefined) {return;}
     
     const current = this.options.current;
     const total = this.options.total;

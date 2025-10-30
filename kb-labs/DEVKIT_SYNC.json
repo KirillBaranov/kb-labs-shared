@@ -1,7 +1,7 @@
 {
   "source": "@kb-labs/devkit",
   "version": "0.1.0",
-  "when": "2025-10-24T09:02:32.868Z",
+  "when": "2025-10-30T17:51:26.215Z",
   "scope": "managed-only",
   "items": [
     "agents",
@@ -17,9 +17,9 @@
     },
     "repo": {},
     "run": {
-      "id": "a8a9173083917b89be920f83f2d3bd85",
-      "startedAt": "2025-10-24T09:02:32.865Z",
-      "finishedAt": "2025-10-24T09:02:32.867Z"
+      "id": "56f58b12cc00f95155f0d04856633f77",
+      "startedAt": "2025-10-30T17:51:26.212Z",
+      "finishedAt": "2025-10-30T17:51:26.213Z"
     },
     "summary": {
       "filesChanged": 0,
