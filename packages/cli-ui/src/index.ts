@@ -2,14 +2,15 @@
  * Main exports for @kb-labs/shared-cli-ui
  */
 
-export * from './colors.js';
-export * from './loader.js';
-export * from './format.js';
-export * from './command-output.js';
-export * from './timing-tracker.js';
-export * from './command-suggestions.js';
-export * from './command-discovery.js';
-export * from './manifest-parser.js';
-export * from './multi-cli-suggestions.js';
-export * from './dynamic-command-discovery.js';
-export * from './artifacts-display.js';
+export * from './colors';
+export * from './loader';
+export * from './format';
+export * from './command-output';
+export * from './timing-tracker';
+export * from './command-suggestions';
+export * from './command-discovery';
+export * from './manifest-parser';
+export * from './multi-cli-suggestions';
+export * from './dynamic-command-discovery';
+export * from './artifacts-display';
+export * from './table';
