@@ -47,12 +47,19 @@ export class Loader {
   }
 
   update(options: Partial<LoaderOptions>): void {
+    const textChanged = options.text !== undefined && options.text !== this.options.text;
     this.options = { ...this.options, ...options };
     
     if (!this.isActive || this.options.jsonMode) {return;}
     
     if (this.options.spinner) {
-      // Spinner updates automatically
+      // If text changed, update immediately to avoid spam from multiple updates
+      if (textChanged) {
+        const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
+        const text = this.options.text ?? 'Loading...';
+        process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
+      }
+      // Spinner will continue updating automatically on interval
     } else if (this.options.total !== undefined) {
       this.updateProgress();
     }
@@ -92,7 +99,8 @@ export class Loader {
       const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
       const text = this.options.text ?? 'Loading...';
       
-      process.stdout.write(`\r${safeColors.info(char)} ${text}`);
+      // Clear the line and write new content
+      process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
       
       this.spinnerIndex = (this.spinnerIndex + 1) % this.spinnerChars.length;
     }, 100);
