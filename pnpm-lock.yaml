@@ -128,6 +128,9 @@ importers:
       '@kb-labs/devkit':
         specifier: link:../../../kb-labs-devkit
         version: link:../../../kb-labs-devkit
+      eslint:
+        specifier: ^9.16.0
+        version: 9.38.0
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1

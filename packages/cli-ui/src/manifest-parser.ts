@@ -86,8 +86,8 @@ export function getCommandInfo(manifest: CommandManifest[], commandId: string): 
 export function generateGroupSuggestions(
   manifest: CommandManifest[],
   group: string,
-  warningCodes: Set<string>,
-  context: any
+  _warningCodes: Set<string>,
+  _context: any
 ): Array<{
   id: string;
   command: string;

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { promises as fsp } from 'node:fs';
 import { safeColors } from './colors';
 import { formatSize, formatRelativeTime } from './format';
 
@@ -203,4 +204,45 @@ export function displayArtifactsCompact(
       return `  ${parts.join(' ')}`;
     })
   ];
+}
+
+/**
+ * Discover artifacts in a directory based on patterns
+ * 
+ * @param baseDir - Base directory to search for artifacts
+ * @param patterns - Array of artifact patterns to search for
+ * @returns Array of discovered artifacts
+ * 
+ * @example
+ * ```typescript
+ * const artifacts = await discoverArtifacts('.kb/mind', [
+ *   { name: 'Index', pattern: 'index.json', description: 'Main index' },
+ *   { name: 'API Index', pattern: 'api-index.json', description: 'API index' },
+ * ]);
+ * ```
+ */
+export async function discoverArtifacts(
+  baseDir: string,
+  patterns: Array<{ name: string; pattern: string; description?: string }>
+): Promise<ArtifactInfo[]> {
+  const artifacts: ArtifactInfo[] = [];
+
+  for (const artifact of patterns) {
+    const artifactPath = path.join(baseDir, artifact.pattern);
+    try {
+      await fsp.access(artifactPath);
+      const stats = await fsp.stat(artifactPath);
+      artifacts.push({
+        name: artifact.name,
+        path: artifactPath,
+        size: stats.size,
+        modified: stats.mtime,
+        description: artifact.description || ''
+      });
+    } catch {
+      // Skip if file doesn't exist
+    }
+  }
+
+  return artifacts;
 }

@@ -106,7 +106,7 @@ export function createKBLabsCommandDiscovery(): DynamicCommandDiscovery {
             if (manifest.commands && Array.isArray(manifest.commands)) {
               return manifest.commands;
             }
-          } catch (error) {
+          } catch {
             // Try next path
             continue;
           }

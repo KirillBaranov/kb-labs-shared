@@ -40,8 +40,7 @@ export async function discoverCLIPackages(
   ];
 
   try {
-    const globModule = await import('glob');
-    const glob = globModule.glob || globModule.default;
+    const { glob } = await import('glob');
     
     for (const pattern of patterns) {
       const files = await glob(pattern, { cwd: rootDir });

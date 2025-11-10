@@ -14,3 +14,8 @@ export * from './multi-cli-suggestions';
 export * from './dynamic-command-discovery';
 export * from './artifacts-display';
 export * from './table';
+export * from './debug';
+export * from './command-runner';
+export * from './utils/flags';
+export * from './utils/context';
+export * from './utils/path';
