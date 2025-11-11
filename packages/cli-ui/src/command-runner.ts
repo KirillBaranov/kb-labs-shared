@@ -1,8 +1,8 @@
-import { box, keyValue } from './format.js';
+import { box, keyValue, safeKeyValue, hasAnsi } from './format.js';
 import { formatTiming } from './command-output.js';
-import { safeColors } from './colors.js';
+import { safeColors, safeSymbols } from './colors.js';
 import {
-  displayArtifactsCompact,
+  displayArtifacts,
   type ArtifactInfo,
   type ArtifactDisplayOptions,
 } from './artifacts-display.js';
@@ -120,7 +120,7 @@ export function createCommandRunner(options: CommandRunnerOptions) {
 
         return exitCode;
       },
-    );
+    ) as Promise<number>;
   };
 }
 
@@ -159,40 +159,70 @@ function formatSuccessOutput(
     return;
   }
 
+  const statusEntry = extractStatusEntry(result.summary);
+  const summaryForDisplay: Record<string, string | number> = statusEntry
+    ? { ...result.summary }
+    : result.summary;
+
+  if (statusEntry) {
+    delete summaryForDisplay[statusEntry.key];
+  }
+
   const lines: string[] = [];
-  lines.push(...keyValue(result.summary));
+  const summaryLines = keyValue(summaryForDisplay);
+  if (summaryLines.length > 0) {
+    lines.push(...summaryLines);
+  }
 
   if (result.artifacts && result.artifacts.length > 0) {
-    const artifactsLines = displayArtifactsCompact(result.artifacts, result.artifactsOptions);
-    if (artifactsLines.length > 0) {
-      lines.push('', ...artifactsLines);
+    if (lines.length > 0) {
+      lines.push('');
     }
+    lines.push(...displayArtifacts(result.artifacts, result.artifactsOptions));
   }
 
   const timing = result.timing ?? durationMs;
-  if (typeof timing === 'number') {
-    lines.push('', `Time: ${formatTiming(timing)}`);
-  } else {
-    lines.push('');
-    for (const [label, value] of Object.entries(timing)) {
-      lines.push(`${label}: ${formatTiming(value)}`);
+  if (typeof timing !== 'number') {
+    const entries = Object.entries(timing);
+    if (entries.length > 0) {
+      if (lines.length > 0) {
+        lines.push('');
+      }
+      lines.push(safeColors.bold('Timing'));
+      for (const [label, value] of entries) {
+        lines.push(...safeKeyValue({ [label]: formatTiming(value) }, { indent: 2, pad: false }));
+      }
     }
   }
 
   if (result.diagnostics && result.diagnostics.length > 0) {
-    lines.push('', safeColors.info('Diagnostics:'));
-    result.diagnostics.forEach((item) => lines.push(`  • ${item}`));
+    if (lines.length > 0) {
+      lines.push('');
+    }
+    lines.push(safeColors.bold('Diagnostics'));
+    result.diagnostics.forEach((item) => lines.push(safeColors.muted(`- ${item}`)));
   }
 
   if (result.warnings && result.warnings.length > 0) {
-    lines.push('', safeColors.warning('Warnings:'));
-    result.warnings.forEach((item) => lines.push(`  • ${item}`));
+    if (lines.length > 0) {
+      lines.push('');
+    }
+    lines.push(safeColors.bold('Warnings'));
+    result.warnings.forEach((item) => lines.push(safeColors.muted(`- ${item}`)));
   }
 
   if (result.errors && result.errors.length > 0) {
-    lines.push('', safeColors.error('Errors:'));
-    result.errors.forEach((item) => lines.push(`  • ${item}`));
+    if (lines.length > 0) {
+      lines.push('');
+    }
+    lines.push(safeColors.bold('Errors'));
+    result.errors.forEach((item) => lines.push(safeColors.muted(`- ${item}`)));
   }
+
+  if (lines.length > 0) {
+    lines.push('');
+  }
+  lines.push(formatStatusLine(statusEntry?.value, durationMs));
 
   ctx.presenter.write(box(title, lines));
 }
@@ -217,5 +247,38 @@ function formatErrorOutput(
   }
 
   ctx.presenter.error(errorMessage);
+}
+
+interface StatusEntry {
+  key: string;
+  value: string;
+}
+
+function extractStatusEntry(summary: Record<string, string | number>): StatusEntry | null {
+  for (const [key, value] of Object.entries(summary)) {
+    if (typeof value === 'string' && key.toLowerCase().includes('status')) {
+      return { key, value };
+    }
+  }
+  return null;
+}
+
+function formatStatusLine(statusValue: string | undefined, durationMs: number): string {
+  const rawStatus = statusValue ?? 'Done';
+  const normalized = rawStatus.toLowerCase();
+
+  let symbol = safeSymbols.success;
+  let colorize = safeColors.success;
+
+  if (normalized.includes('error') || normalized.includes('fail')) {
+    symbol = safeSymbols.error;
+    colorize = safeColors.error;
+  } else if (normalized.includes('partial') || normalized.includes('warn')) {
+    symbol = safeSymbols.warning;
+    colorize = safeColors.warning;
+  }
+
+  const statusText = hasAnsi(rawStatus) ? rawStatus : colorize(rawStatus);
+  return `${symbol} ${statusText} · ${safeColors.muted(formatTiming(durationMs))}`;
 }
 

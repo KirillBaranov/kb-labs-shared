@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { promises as fsp } from 'node:fs';
 import { safeColors } from './colors';
-import { formatSize, formatRelativeTime } from './format';
+import { formatSize, formatRelativeTime, safeKeyValue } from './format';
 
 export interface ArtifactInfo {
   name: string;
@@ -25,7 +25,7 @@ export interface ArtifactDisplayOptions {
  */
 export function displayArtifacts(
   artifacts: ArtifactInfo[],
-  options: ArtifactDisplayOptions = {}
+  options: ArtifactDisplayOptions = {},
 ): string[] {
   const {
     showSize = true,
@@ -44,50 +44,64 @@ export function displayArtifacts(
   let sortedArtifacts = artifacts;
   
   if (groupBy === 'time') {
-    // Sort by modification time (newest first)
-    sortedArtifacts = artifacts
-      .filter(artifact => artifact.modified)
-      .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0));
+    sortedArtifacts = [...artifacts].sort(
+      (a, b) => (b.modified?.getTime() ?? 0) - (a.modified?.getTime() ?? 0),
+    );
   } else if (groupBy === 'type') {
-    // Sort by type/name
-    sortedArtifacts = artifacts.sort((a, b) => a.name.localeCompare(b.name));
+    sortedArtifacts = [...artifacts].sort((a, b) => a.name.localeCompare(b.name));
   } else {
-    // Default: sort by time (newest first) for better UX
-    sortedArtifacts = artifacts
-      .filter(artifact => artifact.modified)
-      .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0));
+    sortedArtifacts = [...artifacts].sort(
+      (a, b) => (b.modified?.getTime() ?? 0) - (a.modified?.getTime() ?? 0),
+    );
   }
-  
+
   sortedArtifacts = sortedArtifacts.slice(0, maxItems);
 
   const lines: string[] = [];
-  
+
   if (title) {
-    lines.push('');
     lines.push(safeColors.bold(title));
   }
 
   if (groupBy === 'type') {
-    // Group by artifact type
     const grouped = sortedArtifacts.reduce((acc, artifact) => {
-      const type = artifact.name.split(' ')[0] || 'Other'; // First word as type
+      const type = artifact.name.split(' ')[0] || 'Other';
       if (!acc[type]) {acc[type] = [];}
-      acc[type].push(artifact);
+      acc[type]!.push(artifact);
       return acc;
     }, {} as Record<string, ArtifactInfo[]>);
 
-    Object.entries(grouped).forEach(([type, typeArtifacts]) => {
-      lines.push(`  ${safeColors.dim(type)}:`);
-      typeArtifacts.forEach(artifact => {
-        lines.push(formatArtifactLine(artifact, { showSize, showTime, showDescription, indent: 4 }));
+    Object.entries(grouped).forEach(([type, items], index) => {
+      if (index > 0 || title) {
+        lines.push('');
+      }
+      lines.push(...safeKeyValue({ [type]: '' }, { pad: false }));
+      items.forEach((artifact, artifactIndex) => {
+        if (artifactIndex > 0) {
+          lines.push('');
+        }
+        lines.push(...formatArtifactLines(artifact, {
+          showSize,
+          showTime,
+          showDescription,
+          indent: 2,
+        }));
       });
     });
-  } else {
-    // Simple list
-    sortedArtifacts.forEach(artifact => {
-      lines.push(formatArtifactLine(artifact, { showSize, showTime, showDescription }));
-    });
+    return lines;
   }
+
+  sortedArtifacts.forEach((artifact, index) => {
+    if (index > 0) {
+      lines.push('');
+    }
+    lines.push(...formatArtifactLines(artifact, {
+      showSize,
+      showTime,
+      showDescription,
+      indent: 0,
+    }));
+  });
 
   return lines;
 }
@@ -95,42 +109,40 @@ export function displayArtifacts(
 /**
  * Format a single artifact line
  */
-function formatArtifactLine(
+function formatArtifactLines(
   artifact: ArtifactInfo,
   options: {
     showSize: boolean;
     showTime: boolean;
     showDescription: boolean;
-    indent?: number;
-  }
-): string {
-  const { showSize, showTime, showDescription, indent = 2 } = options;
-  const parts: string[] = [];
-  
-  // Name
-  parts.push(safeColors.bold(artifact.name));
-  
-  // Path (relative)
+    indent: number;
+  },
+): string[] {
+  const { showSize, showTime, showDescription, indent } = options;
   const relativePath = path.relative(process.cwd(), artifact.path);
-  parts.push(safeColors.info(relativePath));
-  
-  // Size
+  const lines: string[] = [];
+  lines.push(
+    ...safeKeyValue({ [artifact.name]: relativePath }, { pad: false, indent }),
+  );
   if (showSize && artifact.size) {
-    parts.push(`(${formatSize(artifact.size)})`);
+    lines.push(
+      ...safeKeyValue({ Size: formatSize(artifact.size) }, { pad: false, indent: indent + 2 }),
+    );
   }
-  
-  // Time
+
   if (showTime && artifact.modified) {
-    parts.push(`- ${formatRelativeTime(artifact.modified)}`);
+    lines.push(
+      ...safeKeyValue({ Updated: formatRelativeTime(artifact.modified) }, { pad: false, indent: indent + 2 }),
+    );
   }
-  
-  // Description
+
   if (showDescription && artifact.description) {
-    parts.push(`- ${artifact.description}`);
+    lines.push(
+      ...safeKeyValue({ Note: artifact.description }, { pad: false, indent: indent + 2 }),
+    );
   }
-  
-  const indentStr = ' '.repeat(indent);
-  return `${indentStr}${parts.join(' ')}`;
+
+  return lines;
 }
 
 /**
@@ -167,43 +179,49 @@ export function displaySingleArtifact(artifact: ArtifactInfo, title?: string): s
  */
 export function displayArtifactsCompact(
   artifacts: ArtifactInfo[],
-  options: { maxItems?: number; showSize?: boolean; sortByTime?: boolean } = {}
+  options: {
+    maxItems?: number;
+    showSize?: boolean;
+    sortByTime?: boolean;
+    showTime?: boolean;
+    title?: string;
+  } = {},
 ): string[] {
-  const { maxItems = 5, showSize = true, sortByTime = true } = options;
+  const {
+    maxItems = 5,
+    showSize = true,
+    sortByTime = true,
+    showTime = true,
+    title = 'Artifacts',
+  } = options;
   
   if (artifacts.length === 0) {
     return [];
   }
 
-  // Sort artifacts by modification time (newest first) by default
-  const sortedArtifacts = sortByTime 
-    ? artifacts
-        .filter(artifact => artifact.modified)
-        .sort((a, b) => (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0))
-        .slice(0, maxItems)
-    : artifacts.slice(0, maxItems);
+  const sortedArtifacts = (sortByTime
+    ? [...artifacts].sort((a, b) => (b.modified?.getTime() ?? 0) - (a.modified?.getTime() ?? 0))
+    : artifacts.slice()
+  ).slice(0, maxItems);
 
-  return [
-    '',
-    safeColors.bold('Artifacts:'),
-    ...sortedArtifacts.map(artifact => {
-      const parts: string[] = [];
-      parts.push(safeColors.bold(artifact.name));
-      
-      const relativePath = path.relative(process.cwd(), artifact.path);
-      parts.push(safeColors.info(relativePath));
-      
-      if (showSize && artifact.size) {
-        parts.push(`(${formatSize(artifact.size)})`);
-      }
-      
-      if (artifact.modified) {
-        parts.push(`- ${formatRelativeTime(artifact.modified)}`);
-      }
-      
-      return `  ${parts.join(' ')}`;
-    })
-  ];
+  const lines: string[] = [];
+  lines.push(safeColors.bold(title));
+
+  sortedArtifacts.forEach((artifact, index) => {
+    if (index > 0) {
+      lines.push('');
+    }
+    lines.push(
+      ...formatArtifactLines(artifact, {
+        showSize,
+        showTime,
+        showDescription: false,
+        indent: 0,
+      }),
+    );
+  });
+
+  return lines;
 }
 
 /**

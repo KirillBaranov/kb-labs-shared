@@ -4,19 +4,36 @@
 
 import { safeColors, safeSymbols } from './colors';
 
+const ANSI_PATTERN = /\u001B\[[0-9;]*m/g;
+
+export function stripAnsi(input: string): string {
+  return input.replace(ANSI_PATTERN, '');
+}
+
+export function hasAnsi(input: string): boolean {
+  return /\u001B\[[0-9;]*m/.test(input);
+}
+
+function visibleLength(input: string): number {
+  return stripAnsi(input).length;
+}
+
 /**
  * Create a boxed section with title
  */
-export function box(title: string, content: string[]): string {
+export function box(title: string, content: string[] = []): string {
   const lines = content.length > 0 ? content : [''];
-  const maxWidth = Math.max(title.length + 2, ...lines.map(line => line.length));
-  
-  const topBorder = `┌─ ${title}${' '.repeat(Math.max(0, maxWidth - title.length - 2))}`;
-  const bottomBorder = `└─ ${safeSymbols.success} Done`;
-  
-  const middleLines = lines.map(line => `│  ${line}`);
-  
-  return [topBorder, ...middleLines, bottomBorder].join('\n');
+  const titleWidth = visibleLength(title);
+  const bodyWidth = Math.max(titleWidth, ...lines.map(line => visibleLength(line)));
+
+  const topBorder = `┌${'─'.repeat(bodyWidth + 2)}`;
+  const titleLine = `│ ${safeColors.bold(title)}${' '.repeat(Math.max(0, bodyWidth - titleWidth))}`;
+  const bodyLines = lines.map((line) => {
+    const padding = Math.max(0, bodyWidth - visibleLength(line));
+    return `│ ${line}${' '.repeat(padding)}`;
+  });
+
+  return [topBorder, titleLine, ...bodyLines, `└${'─'.repeat(bodyWidth + 2)}`].join('\n');
 }
 
 /**
@@ -65,13 +82,16 @@ export function table(rows: (string | number)[][], headers?: string[]): string[]
 /**
  * Format key-value pairs
  */
-export function keyValue(pairs: Record<string, string | number>): string[] {
-  const maxKeyLength = Math.max(...Object.keys(pairs).map(key => key.length));
-  
-  return Object.entries(pairs).map(([key, value]) => {
-    const paddedKey = key.padEnd(maxKeyLength);
-    return `${paddedKey}: ${value}`;
-  });
+export interface KeyValueOptions {
+  padKeys?: boolean;
+}
+
+export function keyValue(
+  pairs: Record<string, string | number>,
+  options: KeyValueOptions = {},
+): string[] {
+  const { padKeys = true } = options;
+  return safeKeyValue(pairs, { pad: padKeys });
 }
 
 /**
@@ -79,6 +99,154 @@ export function keyValue(pairs: Record<string, string | number>): string[] {
  */
 export function bulletList(items: string[]): string[] {
   return items.map(item => `${safeSymbols.bullet} ${item}`);
+}
+
+export interface SafeKeyValueOptions {
+  indent?: number;
+  pad?: boolean;
+  valueColor?: (value: string, key: string) => string;
+}
+
+export function safeKeyValue(
+  pairs: Record<string, string | number>,
+  options: SafeKeyValueOptions = {},
+): string[] {
+  const { indent = 0, pad = true, valueColor } = options;
+  const keys = Object.keys(pairs);
+  if (keys.length === 0) {
+    return [];
+  }
+  const indentStr = ' '.repeat(indent);
+  const maxKeyLength = pad
+    ? Math.max(...keys.map(key => indent + stripAnsi(key).length))
+    : 0;
+  return keys.map((key) => {
+    const rawKey = key;
+    const rawValue = String(pairs[key] ?? '');
+    const keyLength = indent + stripAnsi(rawKey).length;
+    const padding = pad ? Math.max(0, maxKeyLength - keyLength) : 0;
+    const formattedKey = `${indentStr}${rawKey}${' '.repeat(padding)}`;
+    const computedValue = valueColor ? valueColor(rawValue, key) : rawValue;
+    const valueText = hasAnsi(computedValue) ? computedValue : safeColors.muted(computedValue);
+    return `${safeColors.bold(formattedKey)}: ${valueText}`;
+  });
+}
+
+const pad2 = (value: number): string => value.toString().padStart(2, '0');
+
+const toDate = (value: string | Date): Date => (value instanceof Date ? new Date(value.getTime()) : new Date(value));
+
+const isValidDate = (date: Date): boolean => Number.isFinite(date.getTime());
+
+function getOffsetMinutes(date: Date, timeZone?: string): number {
+  if (!timeZone) {
+    return -date.getTimezoneOffset();
+  }
+
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const parts = dtf.formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts
+      .filter(part => part.type !== 'literal')
+      .map(part => [part.type, Number(part.value)]),
+  ) as Record<string, number | undefined>;
+
+  const year = lookup.year ?? date.getUTCFullYear();
+  const month = (lookup.month ?? date.getUTCMonth() + 1) - 1;
+  const day = lookup.day ?? date.getUTCDate();
+  const hour = lookup.hour ?? date.getUTCHours();
+  const minute = lookup.minute ?? date.getUTCMinutes();
+  const second = lookup.second ?? date.getUTCSeconds();
+
+  const asUTC = Date.UTC(year, month, day, hour, minute, second);
+
+  return Math.round((asUTC - date.getTime()) / 60000);
+}
+
+function formatOffset(offsetMinutes: number): string {
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absMinutes = Math.abs(offsetMinutes);
+  const hours = Math.floor(absMinutes / 60);
+  const minutes = absMinutes % 60;
+  return `${sign}${pad2(hours)}:${pad2(minutes)}`;
+}
+
+function getDateParts(date: Date, timeZone?: string): {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+} {
+  if (!timeZone) {
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hour: date.getHours(),
+      minute: date.getMinutes(),
+      second: date.getSeconds(),
+    };
+  }
+
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
+  const parts = dtf.formatToParts(date);
+  const lookup = Object.fromEntries(
+    parts
+      .filter(part => part.type !== 'literal')
+      .map(part => [part.type, Number(part.value)]),
+  ) as Record<string, number | undefined>;
+
+  return {
+    year: lookup.year ?? date.getUTCFullYear(),
+    month: lookup.month ?? date.getUTCMonth() + 1,
+    day: lookup.day ?? date.getUTCDate(),
+    hour: lookup.hour ?? date.getUTCHours(),
+    minute: lookup.minute ?? date.getUTCMinutes(),
+    second: lookup.second ?? date.getUTCSeconds(),
+  };
+}
+
+/**
+ * Apply primary headline styling
+ */
+export function headline(text: string): string {
+  return safeColors.primary(safeColors.bold(text));
+}
+
+/**
+ * Accent label style (used for tags/pills)
+ */
+export function accentLabel(text: string): string {
+  return safeColors.accent(safeColors.bold(text));
+}
+
+/**
+ * Muted helper
+ */
+export function muted(text: string): string {
+  return safeColors.muted(text);
 }
 
 /**
@@ -102,7 +270,12 @@ export function formatSize(bytes: number): string {
  */
 export function formatRelativeTime(timestamp: string | Date): string {
   const now = new Date();
-  const time = new Date(timestamp);
+  const time = toDate(timestamp);
+
+  if (!isValidDate(time)) {
+    return 'Invalid date';
+  }
+
   const diffMs = now.getTime() - time.getTime();
   
   const seconds = Math.floor(diffMs / 1000);
@@ -119,6 +292,53 @@ export function formatRelativeTime(timestamp: string | Date): string {
   } else {
     return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
   }
+}
+
+export interface FormatTimestampOptions {
+  mode?: 'local' | 'iso';
+  timeZone?: string;
+  includeSeconds?: boolean;
+  includeMilliseconds?: boolean;
+  includeOffset?: boolean;
+}
+
+/**
+ * Format timestamps as absolute values (local or ISO) with optional offsets
+ */
+export function formatTimestamp(
+  timestamp: string | Date,
+  options: FormatTimestampOptions = {},
+): string {
+  const {
+    mode = 'local',
+    timeZone,
+    includeSeconds = false,
+    includeMilliseconds = true,
+    includeOffset = true,
+  } = options;
+
+  const date = toDate(timestamp);
+  if (!isValidDate(date)) {
+    return 'Invalid date';
+  }
+
+  const offsetMinutes = includeOffset ? getOffsetMinutes(date, timeZone) : null;
+  const offsetSuffix =
+    includeOffset && offsetMinutes !== null ? ` (${formatOffset(offsetMinutes)})` : '';
+
+  if (mode === 'iso') {
+    const isoRaw = date.toISOString();
+    const iso = includeMilliseconds ? isoRaw : isoRaw.replace(/\.\d{3}Z$/, 'Z');
+    return `${iso}${offsetSuffix}`;
+  }
+
+  const { year, month, day, hour, minute, second } = getDateParts(date, timeZone);
+  const base = [
+    `${year}-${pad2(month)}-${pad2(day)}`,
+    `${pad2(hour)}:${pad2(minute)}${includeSeconds ? `:${pad2(second)}` : ''}`,
+  ].join(' ');
+
+  return `${base}${offsetSuffix}`;
 }
 
 /**
