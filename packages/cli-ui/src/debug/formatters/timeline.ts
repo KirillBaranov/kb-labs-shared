@@ -41,6 +41,9 @@ export function formatTimelineNode(
   const childPrefix = prefix + (isLast ? '   ' : '│  ');
   for (let index = 0; index < node.children.length; index++) {
     const child = node.children[index];
+    if (!child) {
+      continue;
+    }
     const childIsLast = index === node.children.length - 1;
     lines.push(...formatTimelineNode(child, childIsLast, childPrefix, maxDepth));
   }
