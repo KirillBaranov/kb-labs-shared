@@ -11,11 +11,11 @@ import { TimingTracker } from './timing-tracker.js';
 // Optional analytics types - using interface to avoid type resolution errors
 // when @kb-labs/analytics-sdk-node is not installed
 interface AnalyticsRunScope {
-  (ctx: { actor: unknown; ctx: Record<string, unknown> }, fn: (emit: AnalyticsEmit) => Promise<number>): Promise<number>;
+  (options: { runId?: string; actor?: unknown; ctx?: Record<string, unknown> }, fn: (emit: AnalyticsEmit) => Promise<unknown>): Promise<unknown>;
 }
 
 interface AnalyticsEmit {
-  (event: { type: string; payload: Record<string, unknown> }): Promise<void>;
+  (event: Partial<{ type: string; payload: Record<string, unknown> }>): Promise<unknown>;
 }
 
 export interface CommandPresenter {
@@ -65,9 +65,16 @@ export function createCommandRunner(options: CommandRunnerOptions) {
     let runScope: AnalyticsRunScope | null = null;
     if (options.analytics !== undefined) {
       try {
-        // @ts-expect-error - @kb-labs/analytics-sdk-node is optional dependency
-        const analyticsModule = await import('@kb-labs/analytics-sdk-node');
-        runScope = analyticsModule.runScope as AnalyticsRunScope;
+        // Dynamic import with type assertion to avoid TypeScript errors
+        // @kb-labs/analytics-sdk-node is an optional dependency
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore - optional dependency, types may not be available
+        const analyticsModule = await import('@kb-labs/analytics-sdk-node') as {
+          runScope?: AnalyticsRunScope;
+        };
+        if (analyticsModule.runScope) {
+          runScope = analyticsModule.runScope;
+        }
       } catch {
         // Analytics SDK not available, continue without it
         runScope = null;
