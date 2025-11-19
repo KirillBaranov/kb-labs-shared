@@ -8,8 +8,15 @@ import {
 } from './artifacts-display.js';
 import { TimingTracker } from './timing-tracker.js';
 
-type AnalyticsRunScope = typeof import('@kb-labs/analytics-sdk-node').runScope;
-type AnalyticsEmit = Parameters<Parameters<AnalyticsRunScope>[1]>[0];
+// Optional analytics types - using interface to avoid type resolution errors
+// when @kb-labs/analytics-sdk-node is not installed
+interface AnalyticsRunScope {
+  (ctx: { actor: unknown; ctx: Record<string, unknown> }, fn: (emit: AnalyticsEmit) => Promise<number>): Promise<number>;
+}
+
+interface AnalyticsEmit {
+  (event: { type: string; payload: Record<string, unknown> }): Promise<void>;
+}
 
 export interface CommandPresenter {
   info(message: string): void;
@@ -55,10 +62,17 @@ export function createCommandRunner(options: CommandRunnerOptions) {
     const quietMode = flags.quiet === true;
     const start = Date.now();
 
-    const runScope: AnalyticsRunScope | null =
-      options.analytics !== undefined
-        ? ((await import('@kb-labs/analytics-sdk-node')).runScope as AnalyticsRunScope)
-        : null;
+    let runScope: AnalyticsRunScope | null = null;
+    if (options.analytics !== undefined) {
+      try {
+        // @ts-expect-error - @kb-labs/analytics-sdk-node is optional dependency
+        const analyticsModule = await import('@kb-labs/analytics-sdk-node');
+        runScope = analyticsModule.runScope as AnalyticsRunScope;
+      } catch {
+        // Analytics SDK not available, continue without it
+        runScope = null;
+      }
+    }
 
     const execute = async (): Promise<number> => {
       tracker.checkpoint('start');
