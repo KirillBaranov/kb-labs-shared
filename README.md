@@ -69,7 +69,6 @@ const violations = await checkBoundaries({
 - **Module Boundary Checking**: Enforce import boundaries with configurable rules
 - **Diff Parsing**: Unified diff parser with file change detection
 - **Text Processing**: Normalization, similarity, and text operation utilities
-- **Profile Management**: Project profile management and resolution utilities
 - **CLI UI Utilities**: Shared CLI output formatting and command discovery
 - **Repository Utilities**: Git repository metadata and utilities
 - **Review Types**: Shared types for review systems
@@ -84,7 +83,6 @@ kb-labs-shared/
 │   ├── boundaries/          # Module import boundary checker
 │   ├── cli-ui/              # CLI UI utilities (output formatting, command discovery)
 │   ├── diff/                # Unified diff parser and utilities
-│   ├── profiles/            # Project profile management
 │   ├── repo/                # Repository utilities
 │   ├── review-types/        # Review system types
 │   └── textops/             # Text processing utilities
@@ -106,7 +104,6 @@ kb-labs-shared/
 | [@kb-labs/shared-boundaries](./packages/boundaries/) | Module import boundary checker with configurable rules |
 | [@kb-labs/shared-cli-ui](./packages/cli-ui/) | CLI UI utilities for output formatting, command discovery, and auto-suggestions |
 | [@kb-labs/shared-diff](./packages/diff/) | Unified diff parser and analysis utilities |
-| [@kb-labs/shared-profiles](./packages/profiles/) | Project profile management and resolution utilities |
 | [@kb-labs/shared-repo](./packages/repo/) | Repository utilities for Git metadata and operations |
 | [@kb-labs/shared-review-types](./packages/review-types/) | Shared TypeScript types for review systems |
 | [@kb-labs/shared-textops](./packages/textops/) | Text processing, normalization, and similarity utilities |
@@ -129,12 +126,6 @@ kb-labs-shared/
 - List changed files
 - Extract added/removed lines by file
 - Diff analysis utilities
-
-**@kb-labs/shared-profiles** provides profile management:
-- Profile loading and resolution
-- Profile validation
-- Default profile merging
-- File system profile loading
 
 **@kb-labs/shared-repo** provides repository utilities:
 - Git repository metadata

@@ -21,19 +21,61 @@ function visibleLength(input: string): number {
 /**
  * Create a boxed section with title
  */
-export function box(title: string, content: string[] = []): string {
+export function box(title: string, content: string[] = [], maxWidth?: number): string {
   const lines = content.length > 0 ? content : [''];
   const titleWidth = visibleLength(title);
-  const bodyWidth = Math.max(titleWidth, ...lines.map(line => visibleLength(line)));
+  
+  // Determine max width: use provided maxWidth, or terminal width (default 80), or content width
+  const terminalWidth = typeof process !== 'undefined' && process.stdout?.columns ? process.stdout.columns : 80;
+  const effectiveMaxWidth = maxWidth ?? Math.min(terminalWidth - 4, 120); // -4 for borders and padding
+  
+  const bodyWidth = Math.min(
+    effectiveMaxWidth,
+    Math.max(titleWidth, ...lines.map(line => visibleLength(line)))
+  );
 
-  const topBorder = `┌${'─'.repeat(bodyWidth + 2)}`;
-  const titleLine = `│ ${safeColors.bold(title)}${' '.repeat(Math.max(0, bodyWidth - titleWidth))}`;
-  const bodyLines = lines.map((line) => {
+  // Wrap long lines
+  const wrappedLines: string[] = [];
+  for (const line of lines) {
+    const lineLength = visibleLength(line);
+    if (lineLength <= bodyWidth) {
+      wrappedLines.push(line);
+    } else {
+      // Split long lines at word boundaries when possible
+      const words = line.split(/(\s+)/);
+      let currentLine = '';
+      for (const word of words) {
+        const testLine = currentLine + word;
+        if (visibleLength(testLine) <= bodyWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) {
+            wrappedLines.push(currentLine.trimEnd());
+          }
+          // If single word is too long, truncate it
+          if (visibleLength(word) > bodyWidth) {
+            wrappedLines.push(truncate(word, bodyWidth));
+            currentLine = '';
+          } else {
+            currentLine = word;
+          }
+        }
+      }
+      if (currentLine) {
+        wrappedLines.push(currentLine.trimEnd());
+      }
+    }
+  }
+
+  const topBorder = `┌${'─'.repeat(bodyWidth + 2)}┐`;
+  const titleLine = `│ ${safeColors.bold(title)}${' '.repeat(Math.max(0, bodyWidth - titleWidth))} │`;
+  const bodyLines = wrappedLines.map((line) => {
     const padding = Math.max(0, bodyWidth - visibleLength(line));
-    return `│ ${line}${' '.repeat(padding)}`;
+    return `│ ${line}${' '.repeat(padding)} │`;
   });
+  const bottomBorder = `└${'─'.repeat(bodyWidth + 2)}┘`;
 
-  return [topBorder, titleLine, ...bodyLines, `└${'─'.repeat(bodyWidth + 2)}`].join('\n');
+  return [topBorder, titleLine, ...bodyLines, bottomBorder].join('\n');
 }
 
 /**

@@ -1,6 +1,7 @@
 {
   "name": "@kb-labs/shared-repo",
   "version": "0.1.0",
+  "description": "Shared repository utilities for KB Labs, including Git operations and repository analysis",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,7 +23,9 @@
     "dev": "tsup --config tsup.config.ts --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ignore-pattern 'dist/**'",
+    "lint:fix": "eslint . --fix --ignore-pattern 'dist/**'"
   },
   "devDependencies": {
     "@types/node": "^24.3.3",

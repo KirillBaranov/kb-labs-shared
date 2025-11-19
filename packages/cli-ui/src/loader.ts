@@ -23,6 +23,7 @@ export class Loader {
   private spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   private spinnerIndex = 0;
   private options: LoaderOptions;
+  private lastText: string = '';
 
   constructor(options: LoaderOptions = {}) {
     this.options = {
@@ -38,6 +39,7 @@ export class Loader {
     
     this.isActive = true;
     this.spinnerIndex = 0;
+    this.lastText = this.options.text ?? 'Loading...';
     
     if (this.options.spinner) {
       this.startSpinner();
@@ -47,17 +49,20 @@ export class Loader {
   }
 
   update(options: Partial<LoaderOptions>): void {
-    const textChanged = options.text !== undefined && options.text !== this.options.text;
     this.options = { ...this.options, ...options };
     
     if (!this.isActive || this.options.jsonMode) {return;}
     
     if (this.options.spinner) {
-      // If text changed, update immediately to avoid spam from multiple updates
-      if (textChanged) {
+      const text = this.options.text ?? 'Loading...';
+      // Update lastText and force redraw if text changed
+      if (text !== this.lastText) {
+        this.lastText = text;
+        // Force immediate redraw with current spinner char
         const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
-        const text = this.options.text ?? 'Loading...';
-        process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
+        if (process.stdout.isTTY) {
+          process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
+        }
       }
       // Spinner will continue updating automatically on interval
     } else if (this.options.total !== undefined) {
@@ -99,8 +104,14 @@ export class Loader {
       const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
       const text = this.options.text ?? 'Loading...';
       
-      // Clear the line and write new content
-      process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
+      // Only update spinner char, text is managed by update() method
+      // Use \r to move cursor to start of line, \x1b[K to clear to end of line
+      // This overwrites the same line instead of creating new lines
+      if (process.stdout.isTTY) {
+        // In TTY, use \r to overwrite same line with current spinner char and text
+        process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
+      }
+      // For non-TTY (pipes, redirects), don't write here - update() handles it
       
       this.spinnerIndex = (this.spinnerIndex + 1) % this.spinnerChars.length;
     }, 100);

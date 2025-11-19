@@ -8,6 +8,9 @@ import {
 } from './artifacts-display.js';
 import { TimingTracker } from './timing-tracker.js';
 
+type AnalyticsRunScope = typeof import('@kb-labs/analytics-sdk-node').runScope;
+type AnalyticsEmit = Parameters<Parameters<AnalyticsRunScope>[1]>[0];
+
 export interface CommandPresenter {
   info(message: string): void;
   warn?(message: string): void;
@@ -52,9 +55,9 @@ export function createCommandRunner(options: CommandRunnerOptions) {
     const quietMode = flags.quiet === true;
     const start = Date.now();
 
-    const runScope =
+    const runScope: AnalyticsRunScope | null =
       options.analytics !== undefined
-        ? (await import('@kb-labs/analytics-sdk-node')).runScope
+        ? ((await import('@kb-labs/analytics-sdk-node')).runScope as AnalyticsRunScope)
         : null;
 
     const execute = async (): Promise<number> => {
@@ -83,12 +86,12 @@ export function createCommandRunner(options: CommandRunnerOptions) {
     }
 
     const totalStart = Date.now();
-    return runScope(
+    const result = await runScope(
       {
         actor: options.analytics.actor as never,
         ctx: { workspace: ctx.cwd },
       },
-      async (emit) => {
+      async (emit: AnalyticsEmit) => {
         await emit({
           type: options.analytics!.started,
           payload: options.analytics!.getPayload?.(flags) ?? {},
@@ -120,7 +123,9 @@ export function createCommandRunner(options: CommandRunnerOptions) {
 
         return exitCode;
       },
-    ) as Promise<number>;
+    );
+
+    return result as number;
   };
 }
 

@@ -1,6 +1,7 @@
 {
   "name": "@kb-labs/shared-review-types",
   "version": "0.1.0",
+  "description": "Shared TypeScript types for code review functionality in KB Labs",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -8,6 +9,11 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["src/*"]
     }
   },
   "files": [
@@ -22,7 +28,9 @@
     "dev": "tsup --config tsup.config.ts --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ignore-pattern 'dist/**'",
+    "lint:fix": "eslint . --fix --ignore-pattern 'dist/**'"
   },
   "devDependencies": {
     "@types/node": "^24.3.3",
