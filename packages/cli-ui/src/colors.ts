@@ -130,4 +130,13 @@ export const safeSymbols = {
   package: supportsColor ? symbols.package : '›',
   pointer: supportsColor ? symbols.pointer : '>',
   section: supportsColor ? symbols.section : '|',
+  // Box-drawing characters for modern side border
+  separator: '─',      // Horizontal line
+  border: '│',         // Vertical line
+  topLeft: '┌',        // Top-left corner
+  topRight: '┐',       // Top-right corner
+  bottomLeft: '└',     // Bottom-left corner
+  bottomRight: '┘',    // Bottom-right corner
+  leftT: '├',          // Left T-junction
+  rightT: '┤',         // Right T-junction
 };
