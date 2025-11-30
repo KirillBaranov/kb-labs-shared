@@ -1,12 +1,12 @@
-import { box } from '../../format.js';
-import { formatDebugEntryAI, formatDebugEntriesAI, shouldUseAIFormat } from '../formatters/ai.js';
+import { box } from '../../format';
+import { formatDebugEntryAI, formatDebugEntriesAI, shouldUseAIFormat } from '../formatters/ai';
 import {
   formatDebugEntryHuman,
   formatDebugEntriesHuman,
   type HumanFormatterOptions,
-} from '../formatters/human.js';
-import { formatTimelineWithSummary } from '../formatters/timeline.js';
-import type { DebugDetailLevel, DebugEntry, DebugFormat } from '../types.js';
+} from '../formatters/human';
+import { formatTimelineWithSummary } from '../formatters/timeline';
+import type { DebugDetailLevel, DebugEntry, DebugFormat } from '../types';
 
 export interface DebugOutputOptions extends HumanFormatterOptions {
   format?: DebugFormat;

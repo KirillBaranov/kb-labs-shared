@@ -1,12 +1,12 @@
-import { box, keyValue, safeKeyValue, hasAnsi } from './format.js';
-import { formatTiming } from './command-output.js';
-import { safeColors, safeSymbols } from './colors.js';
+import { box, keyValue, safeKeyValue, hasAnsi } from './format';
+import { formatTiming } from './command-output';
+import { safeColors, safeSymbols } from './colors';
 import {
   displayArtifacts,
   type ArtifactInfo,
   type ArtifactDisplayOptions,
-} from './artifacts-display.js';
-import { TimingTracker } from './timing-tracker.js';
+} from './artifacts-display';
+import { TimingTracker } from './timing-tracker';
 
 // Optional analytics types - using interface to avoid type resolution errors
 // when @kb-labs/analytics-sdk-node is not installed

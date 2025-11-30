@@ -1,7 +1,7 @@
-import { formatDebugEntriesHuman } from './formatters/human.js';
-import { formatDebugEntriesAI } from './formatters/ai.js';
-import { formatTimelineWithSummary } from './formatters/timeline.js';
-import type { DebugEntry, DebugExportOptions, DebugFilterOptions, DebugTreeNode } from './types.js';
+import { formatDebugEntriesHuman } from './formatters/human';
+import { formatDebugEntriesAI } from './formatters/ai';
+import { formatTimelineWithSummary } from './formatters/timeline';
+import type { DebugEntry, DebugExportOptions, DebugFilterOptions, DebugTreeNode } from './types';
 
 function toRegex(pattern: string): RegExp {
   if (!pattern.includes('*')) {

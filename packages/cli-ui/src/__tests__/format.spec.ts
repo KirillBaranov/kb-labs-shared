@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { formatTimestamp, formatRelativeTime } from '../format.js';
+import { formatTimestamp, formatRelativeTime } from '../format';
 
 describe('format helpers', () => {
   const baseDate = new Date('2025-01-01T00:05:30Z');

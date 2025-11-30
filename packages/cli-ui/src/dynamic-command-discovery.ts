@@ -2,8 +2,8 @@
  * Dynamic command discovery that loads commands from actual manifests
  */
 
-import type { CommandDiscovery} from './command-discovery.js';
-import { type CommandInfo } from './command-discovery.js';
+import type { CommandDiscovery} from './command-discovery';
+import { type CommandInfo } from './command-discovery';
 
 export interface ManifestLoader {
   loadManifest(packageName: string): Promise<any[]>;

@@ -1,6 +1,6 @@
-import type { DebugEntry, DebugTreeNode } from '../types.js';
-import { createDebugTree } from '../utilities.js';
-import { formatTimelineNode } from '../formatters/timeline.js';
+import type { DebugEntry, DebugTreeNode } from '../types';
+import { createDebugTree } from '../utilities';
+import { formatTimelineNode } from '../formatters/timeline';
 
 export interface DebugTreeOptions {
   showSummary?: boolean;

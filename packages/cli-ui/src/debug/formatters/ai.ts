@@ -1,4 +1,4 @@
-import type { DebugEntry, DebugFormat } from '../types.js';
+import type { DebugEntry, DebugFormat } from '../types';
 
 export function formatDebugEntryAI(entry: DebugEntry): string {
   return JSON.stringify(entry, null, 2);

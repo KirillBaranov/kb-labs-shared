@@ -1,5 +1,5 @@
-import { safeColors, safeSymbols } from '../../colors.js';
-import type { DebugEntry } from '../types.js';
+import { safeColors, safeSymbols } from '../../colors';
+import type { DebugEntry } from '../types';
 
 export interface HumanFormatterOptions {
   showTimestamp?: boolean;

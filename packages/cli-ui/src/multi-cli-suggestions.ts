@@ -8,12 +8,12 @@ import {
   generateDevlinkSuggestions,
   type CommandSuggestion,
   type CommandRegistry 
-} from './command-suggestions.js';
+} from './command-suggestions';
 import { 
   extractCommandIds, 
   generateGroupSuggestions,
   type CommandManifest 
-} from './manifest-parser.js';
+} from './manifest-parser';
 
 export interface MultiCLIContext {
   warningCodes: Set<string>;

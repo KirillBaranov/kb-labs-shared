@@ -8,21 +8,21 @@ export type {
   DebugLevel,
   DebugMeta,
   DebugTreeNode,
-} from './types.js';
+} from './types';
 
 export {
   formatDebugEntryAI,
   formatDebugEntriesAI,
   shouldUseAIFormat,
-} from './formatters/ai.js';
+} from './formatters/ai';
 
 export {
   formatDebugEntryHuman,
   formatDebugEntriesHuman,
   type HumanFormatterOptions,
-} from './formatters/human.js';
+} from './formatters/human';
 
-export { formatTimelineNode, formatTimeline, formatTimelineWithSummary } from './formatters/timeline.js';
+export { formatTimelineNode, formatTimeline, formatTimelineWithSummary } from './formatters/timeline';
 
 export {
   DebugOutput,
@@ -30,11 +30,11 @@ export {
   formatDebugOutput,
   formatDebugOutputs,
   type DebugOutputOptions,
-} from './components/output.js';
+} from './components/output';
 
-export { DebugTree, type DebugTreeOptions } from './components/tree.js';
+export { DebugTree, type DebugTreeOptions } from './components/tree';
 
-export { DebugTrace, type TraceOptions } from './components/trace.js';
+export { DebugTrace, type TraceOptions } from './components/trace';
 
 export {
   createDebugTree,
@@ -52,5 +52,5 @@ export {
   groupByGroup,
   groupByNamespace,
   searchInLogs,
-} from './utilities.js';
+} from './utilities';
 

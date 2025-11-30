@@ -2,8 +2,8 @@
  * Automatic CLI discovery and registration
  */
 
-import { MultiCLISuggestions, type CLIPackage } from './multi-cli-suggestions.js';
-import { extractCommandIds } from './manifest-parser.js';
+import { MultiCLISuggestions, type CLIPackage } from './multi-cli-suggestions';
+import { extractCommandIds } from './manifest-parser';
 
 export interface CLIDiscoveryOptions {
   /**
@@ -113,7 +113,7 @@ export async function getWorkspaceCommandRegistry(
     allCommands.push(...extractCommandIds(pkg.commands));
   }
   
-  const { createCommandRegistry } = await import('./command-suggestions.js');
+  const { createCommandRegistry } = await import('./command-suggestions');
   const registry = createCommandRegistry(allCommands);
   
   return { registry, packages };

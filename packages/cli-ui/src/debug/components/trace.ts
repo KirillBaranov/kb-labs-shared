@@ -1,6 +1,6 @@
-import type { DebugEntry } from '../types.js';
-import { formatTimelineWithSummary } from '../formatters/timeline.js';
-import { DebugTree } from './tree.js';
+import type { DebugEntry } from '../types';
+import { formatTimelineWithSummary } from '../formatters/timeline';
+import { DebugTree } from './tree';
 
 export interface TraceOptions {
   showSummary?: boolean;

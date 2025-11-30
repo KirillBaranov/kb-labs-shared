@@ -1,6 +1,6 @@
-import { safeColors, safeSymbols } from '../../colors.js';
-import type { DebugEntry, DebugTreeNode } from '../types.js';
-import { createDebugTree } from '../utilities.js';
+import { safeColors, safeSymbols } from '../../colors';
+import type { DebugEntry, DebugTreeNode } from '../types';
+import { createDebugTree } from '../utilities';
 
 function formatDuration(duration: number): string {
   if (duration < 1000) {
