@@ -16,10 +16,10 @@
         "../kb-labs-cli/packages/cli-contracts/src/*"
       ],
       "@kb-labs/shared-cli-ui": [
-        "packages/cli-ui/src/index.ts"
+        "packages/shared-cli-ui/src/index.ts"
       ],
       "@kb-labs/shared-cli-ui/*": [
-        "packages/cli-ui/src/*"
+        "packages/shared-cli-ui/src/*"
       ]
     }
   }

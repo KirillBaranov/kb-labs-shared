@@ -5,15 +5,10 @@
 
 import {
   defineCommand,
-  type CommandConfig,
   type FlagSchemaDefinition,
-  type CommandResult,
   type InferFlags,
-  type CommandHandler,
-  type CommandFormatter,
   type TrackingConfig,
 } from './index';
-import type { SystemContext } from '@kb-labs/cli-contracts';
 import type { Command, CommandGroup, FlagDefinition } from '@kb-labs/cli-contracts/command';
 
 /**
@@ -42,17 +37,23 @@ function convertFlagSchema(schema: FlagSchemaDefinition): FlagDefinition[] {
 
 /**
  * Extended command config for system commands
- * 
+ *
  * All type parameters are optional - use them when you want type safety, skip them for simplicity.
- * 
+ *
  * TFlags can be inferred from the flags schema, but can also be explicitly provided
  * for better type inference in complex cases.
+ *
+ * TODO: TResult should extend CommandResult (require ok: boolean), but ~50 existing commands
+ * define custom result types without this field. Need to migrate all commands to include
+ * ok: boolean in their result types, then restore the constraint:
+ * TResult extends CommandResult = CommandResult
  */
 export interface SystemCommandConfig<
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
-  TResult extends CommandResult = CommandResult,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TResult = any, // TODO: restore CommandResult constraint after migrating ~50 commands
   TArgv extends readonly string[] = string[]
-> extends Omit<CommandConfig<TFlags, TResult, TArgv>, 'name'> {
+> {
   /** Command name (required for system commands) */
   name: string;
   /** Command description (required for system commands) */
@@ -67,10 +68,14 @@ export interface SystemCommandConfig<
   examples?: string[];
   /** Flag schema definition - TypeScript will infer TFlags from this */
   flags: TFlags;
+  /** Analytics configuration */
+  analytics?: Omit<TrackingConfig, 'command'> & { command?: string };
   /** Command handler - receives inferred flags and must return TResult */
-  handler: CommandHandler<InferFlags<TFlags>, TResult, TArgv>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: (ctx: any, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
   /** Optional formatter - receives TResult with inferred flags */
-  formatter?: CommandFormatter<InferFlags<TFlags>, TResult, TArgv>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formatter?: (result: TResult, ctx: any, flags: InferFlags<TFlags>, argv?: TArgv) => void;
 }
 
 /**
@@ -145,28 +150,36 @@ export interface SystemCommandConfig<
  * ```
  */
 // Overload for explicit TFlags and TResult
+// TODO: restore TResult extends CommandResult after migrating commands
 export function defineSystemCommand<
   TFlags extends FlagSchemaDefinition,
-  TResult extends CommandResult = CommandResult,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TResult = any,
   TArgv extends readonly string[] = string[]
 >(
   config: SystemCommandConfig<TFlags, TResult, TArgv>
 ): Command;
 // Implementation - all parameters optional with defaults
+// TODO: restore TResult extends CommandResult after migrating commands
 export function defineSystemCommand<
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
-  TResult extends CommandResult = CommandResult,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TResult = any,
   TArgv extends readonly string[] = string[]
 >(
   config: SystemCommandConfig<TFlags, TResult, TArgv>
 ): Command {
-  const { name, description, longDescription, category, aliases, examples, flags, ...restConfig } = config;
-  
+  const { name, description, longDescription, category, aliases, examples, flags, analytics, handler, formatter } = config;
+
   // Create handler using defineCommand (shared base)
-  const handler = defineCommand<TFlags, TResult, TArgv>({
+  // TODO: Remove type assertion after migrating all commands to include ok: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wrappedHandler = defineCommand<TFlags, any, TArgv>({
     name,
     flags: flags || ({} as TFlags),
-    ...restConfig,
+    analytics,
+    handler: handler as any,
+    formatter: formatter as any,
   });
 
   return {
@@ -177,7 +190,7 @@ export function defineSystemCommand<
     aliases: aliases || [],
     flags: flags ? convertFlagSchema(flags) : [],
     examples: examples || [],
-    run: handler,
+    run: wrappedHandler,
   };
 }
 

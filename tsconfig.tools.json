@@ -2,10 +2,10 @@
   "extends": "@kb-labs/devkit/tsconfig/node.json",
   "files": [],
   "references": [
-    { "path": "packages/boundaries" },
-    { "path": "packages/diff" },
+    { "path": "packages/shared-boundaries" },
+    { "path": "packages/shared-diff" },
     { "path": "packages/profiles" },
-    { "path": "packages/textops" },
+    { "path": "packages/shared-textops" },
     { "path": "apps/demo" }
   ],
   "compilerOptions": {

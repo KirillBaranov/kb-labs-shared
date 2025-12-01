@@ -23,7 +23,9 @@ export type { CommandOutput } from '@kb-labs/shared-cli-ui';
 /**
  * Command execution status
  */
-export type CommandStatus = 'success' | 'failed' | 'error' | 'cancelled' | 'skipped';
+// Note: 'warning' and 'info' are legacy statuses from cli-ui, they may be used for display purposes
+// but semantically a command is either successful or not
+export type CommandStatus = 'success' | 'failed' | 'error' | 'cancelled' | 'skipped' | 'warning' | 'info';
 
 /**
  * Helper types for command results (optional - use when convenient)
