@@ -46,7 +46,7 @@ const symbolCharacters = {
   success: 'OK',
   error: 'ERR',
   warning: 'WARN',
-  info: 'INFO',
+  info: 'ℹ',
   bullet: '•',
   clock: 'TIME',
   folder: 'DIR',
