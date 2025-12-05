@@ -10,6 +10,7 @@ export { TimingTracker } from '@kb-labs/shared-cli-ui';
 export type { CliContext } from '@kb-labs/cli-contracts';
 
 import type { CliContext as BaseCliContext } from '@kb-labs/cli-contracts';
+import type { PlatformServices } from '@kb-labs/plugin-runtime';
 
 /**
  * Enhanced context with tracker and output helpers
@@ -27,5 +28,8 @@ export interface EnhancedCliContext extends BaseCliContext {
   warning: OutputHelpers['warning'];
   info: OutputHelpers['info'];
   result: OutputHelpers['result'];
+
+  /** Platform services (available in plugin-aware hosts) */
+  platform?: PlatformServices;
 }
 
