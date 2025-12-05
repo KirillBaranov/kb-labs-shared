@@ -11,6 +11,11 @@ export default defineConfig({
     'helpers/index': 'src/helpers/index.ts',
   },
   tsconfig: 'tsconfig.build.json', // Use build-specific tsconfig without paths
-  dts: true, // Disabled temporarily - needs @kb-labs/analytics-sdk-node package (unrelated to circular deps)
+  dts: {
+    resolve: true, // Resolve external type declarations
+  },
+  external: [
+    /^@kb-labs\/.*/, // All workspace packages - let runtime resolve them
+  ],
 });
 

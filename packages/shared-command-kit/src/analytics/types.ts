@@ -1,58 +1,23 @@
 /**
  * @module @kb-labs/shared-command-kit/analytics/types
- * Types for analytics tracking
+ * Analytics types (legacy - deprecated)
+ *
+ * @deprecated Use platform.analytics from PluginContext instead
  */
 
-/**
- * Analytics event payload
- */
-export type AnalyticsEventPayload = Record<string, unknown>;
-
-/**
- * Analytics event
- */
-export interface AnalyticsEvent {
-  type: string;
-  payload?: AnalyticsEventPayload;
-}
-
-/**
- * Analytics emit function
- */
-export type AnalyticsEmit = (event: Partial<AnalyticsEvent>) => Promise<unknown>;
-
-/**
- * Analytics scope function
- */
-export type AnalyticsScope = <T>(
-  fn: (emit: AnalyticsEmit) => Promise<T>
-) => Promise<T>;
-
-/**
- * Tracking configuration
- */
 export interface TrackingConfig {
-  /** Command name for context */
   command: string;
-  /** Event type for start */
-  startEvent: string;
-  /** Event type for finish */
-  finishEvent: string;
-  /** Actor identifier */
+  startEvent?: string;
+  finishEvent?: string;
   actor?: string;
-  /** Additional context */
   context?: Record<string, unknown>;
-  /** Include flags in payload */
   includeFlags?: boolean;
 }
 
-/**
- * Tracking result with emit and scope functions
- */
+export type AnalyticsEmit = (event: Partial<{ type: string; payload?: unknown }>) => Promise<void>;
+export type AnalyticsScope = <T>(fn: (emit: AnalyticsEmit) => Promise<T>) => Promise<T>;
+
 export interface TrackingResult {
-  /** Emit analytics event */
-  emit: (eventType: 'started' | 'finished', payload?: AnalyticsEventPayload) => Promise<void>;
-  /** Run function within analytics scope */
+  emit: (eventType: 'started' | 'finished', payload?: Record<string, unknown>) => Promise<void>;
   scope: AnalyticsScope;
 }
-

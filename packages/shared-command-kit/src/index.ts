@@ -18,6 +18,12 @@ export * from './errors/index';
 export * from './helpers/index';
 export * from './define-system-command';
 export * from './output-helpers';
+export * from './manifest';
+export * from './permissions';
+export * from './validation/index';
+export * from './rest/index';
+export * from './lifecycle/index';
+export * from './studio/index';
 export type { CommandOutput } from '@kb-labs/shared-cli-ui';
 
 /**
@@ -352,6 +358,9 @@ export function defineCommand<
             resultData.status = resultData.ok ? 'success' : (resultData.error ? 'error' : 'failed');
           }
           exitCode = resultData.ok ? 0 : 1;
+        } else if (result && typeof result === 'object') {
+          // Result is an object but doesn't have 'ok' field - preserve all fields and add 'ok'
+          resultData = { ...(result as Record<string, unknown>), ok: true, status: 'success' } as TResult & { timingMs?: number };
         } else {
           resultData = { ok: true, status: 'success' } as TResult & { timingMs?: number };
         }

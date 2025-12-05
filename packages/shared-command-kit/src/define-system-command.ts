@@ -5,6 +5,7 @@
 
 import {
   defineCommand,
+  type CommandResult,
   type FlagSchemaDefinition,
   type InferFlags,
   type TrackingConfig,
@@ -43,15 +44,11 @@ function convertFlagSchema(schema: FlagSchemaDefinition): FlagDefinition[] {
  * TFlags can be inferred from the flags schema, but can also be explicitly provided
  * for better type inference in complex cases.
  *
- * TODO: TResult should extend CommandResult (require ok: boolean), but ~50 existing commands
- * define custom result types without this field. Need to migrate all commands to include
- * ok: boolean in their result types, then restore the constraint:
- * TResult extends CommandResult = CommandResult
+ * TResult must extend CommandResult (requires ok: boolean field).
  */
 export interface SystemCommandConfig<
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TResult = any, // TODO: restore CommandResult constraint after migrating ~50 commands
+  TResult extends CommandResult = CommandResult,
   TArgv extends readonly string[] = string[]
 > {
   /** Command name (required for system commands) */
@@ -150,21 +147,17 @@ export interface SystemCommandConfig<
  * ```
  */
 // Overload for explicit TFlags and TResult
-// TODO: restore TResult extends CommandResult after migrating commands
 export function defineSystemCommand<
   TFlags extends FlagSchemaDefinition,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TResult = any,
+  TResult extends CommandResult = CommandResult,
   TArgv extends readonly string[] = string[]
 >(
   config: SystemCommandConfig<TFlags, TResult, TArgv>
 ): Command;
 // Implementation - all parameters optional with defaults
-// TODO: restore TResult extends CommandResult after migrating commands
 export function defineSystemCommand<
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TResult = any,
+  TResult extends CommandResult = CommandResult,
   TArgv extends readonly string[] = string[]
 >(
   config: SystemCommandConfig<TFlags, TResult, TArgv>
@@ -172,14 +165,12 @@ export function defineSystemCommand<
   const { name, description, longDescription, category, aliases, examples, flags, analytics, handler, formatter } = config;
 
   // Create handler using defineCommand (shared base)
-  // TODO: Remove type assertion after migrating all commands to include ok: boolean
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wrappedHandler = defineCommand<TFlags, any, TArgv>({
+  const wrappedHandler = defineCommand<TFlags, TResult, TArgv>({
     name,
     flags: flags || ({} as TFlags),
     analytics,
-    handler: handler as any,
-    formatter: formatter as any,
+    handler,
+    formatter,
   });
 
   return {
