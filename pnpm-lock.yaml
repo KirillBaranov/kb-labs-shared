@@ -82,6 +82,9 @@ importers:
       '@kb-labs/core-platform':
         specifier: link:../../../kb-labs-core/packages/core-platform
         version: link:../../../kb-labs-core/packages/core-platform
+      '@kb-labs/core-runtime':
+        specifier: link:../../../kb-labs-core/packages/core-runtime
+        version: link:../../../kb-labs-core/packages/core-runtime
       '@kb-labs/core-workspace':
         specifier: link:../../../kb-labs-core/packages/core-workspace
         version: link:../../../kb-labs-core/packages/core-workspace

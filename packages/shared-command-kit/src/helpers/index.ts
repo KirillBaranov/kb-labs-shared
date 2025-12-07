@@ -1,18 +1,33 @@
 /**
  * @module @kb-labs/shared-command-kit/helpers
- * Helper utilities for plugin development.
+ * Global platform access helpers
  *
- * Provides high-level helpers for common patterns:
- * - Platform service access (useLLM, useVectorStore, etc.)
- * - Validation (schemas, validateInput, etc.)
- * - Common patterns (withSpinner, processBatch, retryWithBackoff, etc.)
- * - Context utilities
- * - Flag utilities
+ * Provides clean, type-safe access to platform services without context drilling.
+ * Similar to React hooks pattern, but for KB Labs platform.
+ *
+ * @example
+ * ```typescript
+ * import { useLLM, useLogger, useAnalytics } from '@kb-labs/shared-command-kit/helpers';
+ *
+ * async handler(ctx, argv, flags) {
+ *   const logger = useLogger();
+ *   const llm = useLLM();
+ *
+ *   await logger.info('Processing started');
+ *
+ *   if (llm) {
+ *     const result = await llm.complete('prompt');
+ *     await logger.info('LLM result', { length: result.content.length });
+ *   }
+ * }
+ * ```
  */
 
-export * from './context';
-export * from './flags';
-export * from './platform';
-export * from './validation';
-export * from './patterns';
+// Platform singleton
+export { usePlatform, isPlatformConfigured } from './use-platform';
 
+// Core services
+export { useLogger, useLoggerWithContext } from './use-logger';
+export { useLLM, isLLMAvailable } from './use-llm';
+export { useAnalytics, trackAnalyticsEvent } from './use-analytics';
+export { useStorage } from './use-storage';
