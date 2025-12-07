@@ -15,6 +15,12 @@
       "@kb-labs/core-platform/*": [
         "../kb-labs-core/packages/core-platform/src/*"
       ],
+      "@kb-labs/core-workspace": [
+        "../kb-labs-core/packages/core-workspace/src/index.ts"
+      ],
+      "@kb-labs/core-workspace/*": [
+        "../kb-labs-core/packages/core-workspace/src/*"
+      ],
       "@kb-labs/plugin-manifest": [
         "../kb-labs-plugin/packages/plugin-manifest/src/index.ts"
       ],

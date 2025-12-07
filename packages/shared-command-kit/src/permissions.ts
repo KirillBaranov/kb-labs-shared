@@ -152,7 +152,8 @@ export const presets = {
     fs: {
       mode: 'readWrite' as const,
       allow: [
-        `.kb/${pluginName}/**`,
+        `.kb/${pluginName}`,        // Allow the directory itself (for mkdir)
+        `.kb/${pluginName}/**`,     // Allow all files inside
         'package.json',
         '**/package.json',
       ],

@@ -18,7 +18,7 @@ import type { PlatformServices } from '@kb-labs/plugin-runtime';
 import type { TimingTracker } from '@kb-labs/shared-cli-ui';
 import type { OutputHelpers } from '../output-helpers';
 
-export interface EnhancedCliContext extends BaseCliContext {
+export interface EnhancedCliContext<TConfig = any, TEnv = Record<string, string | undefined>> extends Omit<BaseCliContext, 'env' | 'config'> {
   /** Timing tracker instance */
   tracker: TimingTracker;
 
@@ -31,5 +31,33 @@ export interface EnhancedCliContext extends BaseCliContext {
 
   /** Platform services (available in plugin-aware hosts) */
   platform?: PlatformServices;
+
+  /**
+   * Product configuration (auto-loaded from kb.config.json)
+   * Available when command is executed via plugin adapter.
+   * Type-safe when TConfig is specified in defineCommand<TConfig, ...>()
+   */
+  config?: TConfig;
+
+  /**
+   * Validated environment variables.
+   * Type-safe when TEnv is specified in defineCommand<TConfig, TFlags, TResult, TArgv, TEnv>()
+   *
+   * @example
+   * ```typescript
+   * type Env = {
+   *   OPENAI_API_KEY: string;
+   *   DEBUG?: string;
+   * }
+   *
+   * defineCommand<Config, Flags, Result, Argv, Env>({
+   *   handler(ctx) {
+   *     ctx.env.OPENAI_API_KEY // string (validated!)
+   *     ctx.env.DEBUG           // string | undefined
+   *   }
+   * })
+   * ```
+   */
+  env: TEnv;
 }
 

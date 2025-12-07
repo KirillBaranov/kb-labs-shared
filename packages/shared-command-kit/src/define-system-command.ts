@@ -165,7 +165,7 @@ export function defineSystemCommand<
   const { name, description, longDescription, category, aliases, examples, flags, analytics, handler, formatter } = config;
 
   // Create handler using defineCommand (shared base)
-  const wrappedHandler = defineCommand<TFlags, TResult, TArgv>({
+  const wrappedHandler = defineCommand<any, TFlags, TResult, TArgv>({
     name,
     flags: flags || ({} as TFlags),
     analytics,
