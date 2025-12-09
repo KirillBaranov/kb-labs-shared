@@ -198,24 +198,32 @@ export type CommandFormatter<
  *   handler: (ctx, argv, flags) => { ... }
  * });
  *
- * // With typed config
+ * // Simple usage with flags and result only (RECOMMENDED)
+ * const cmd = defineCommand<MyFlags, MyResult>({
+ *   handler: (ctx, argv, flags) => {
+ *     // flags are typed as InferFlags<MyFlags>
+ *     return { ok: true, ...result };
+ *   }
+ * });
+ *
+ * // With typed config (third parameter)
  * type MindConfig = { llmProvider: string; maxTokens: number };
- * const cmd = defineCommand<MindConfig, Flags, Result>({
+ * const cmd = defineCommand<Flags, Result, MindConfig>({
  *   handler: (ctx, argv, flags) => {
  *     ctx.config?.llmProvider // TypeScript knows it's a string
  *   }
  * });
  *
- * // With typed env
+ * // With typed env (fifth parameter)
  * type Env = { OPENAI_API_KEY: string; DEBUG?: string };
- * const cmd = defineCommand<Config, Flags, Result, Argv, Env>({
+ * const cmd = defineCommand<Flags, Result, Config, Argv, Env>({
  *   handler: (ctx, argv, flags) => {
  *     ctx.env.OPENAI_API_KEY // string (validated!)
  *   }
  * });
  *
  * // Strict typing: argv is tuple ['workflow-id', ...string[]]
- * const cmd = defineCommand<Config, Flags, Result, ['workflow-id', ...string[]]>({
+ * const cmd = defineCommand<Flags, Result, Config, ['workflow-id', ...string[]]>({
  *   handler: (ctx, argv, flags) => {
  *     const workflowId = argv[0]; // TypeScript knows it's 'workflow-id'
  *   }
@@ -223,9 +231,9 @@ export type CommandFormatter<
  * ```
  */
 export interface CommandConfig<
-  TConfig = any,
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
   TResult extends CommandResult = CommandResult,
+  TConfig = any,
   TArgv extends readonly string[] = string[],
   TEnv = Record<string, string | undefined>
 > {
@@ -262,17 +270,16 @@ export interface CommandConfig<
  *
  * All type parameters are optional - use them when you want type safety, skip them for simplicity.
  *
- * @template TConfig - Product configuration type (auto-loaded from kb.config.json)
- * @template TFlags - Flag schema definition type
+ * @template TFlags - Flag schema definition type (FIRST - most commonly used)
  * @template TResult - Command result type (must extend CommandResult)
+ * @template TConfig - Product configuration type (auto-loaded from kb.config.json)
  * @template TArgv - Argument tuple type (defaults to string[])
  * @template TEnv - Environment variables type (defaults to process.env)
  *
  * @example
  * ```typescript
- * // Simple command with basic result
+ * // Simple command with flags and result (RECOMMENDED)
  * export const releaseRunHandler = defineCommand<
- *   any, // config type (or skip for simplicity)
  *   { scope: { type: 'string'; required: true } }, // flags
  *   CommandResult & { published: number } // result
  * >({
@@ -293,7 +300,7 @@ export interface CommandConfig<
  *   },
  * });
  *
- * // Command with typed config
+ * // Command with typed config (third parameter)
  * type MindConfig = { llmProvider: string; maxTokens: number };
  * type RagQueryFlags = {
  *   text: { type: 'string'; required: true };
@@ -302,9 +309,9 @@ export interface CommandConfig<
  * type RagQueryResult = CommandResult & { answer: string; confidence: number };
  *
  * export const ragQueryHandler = defineCommand<
- *   MindConfig,
  *   RagQueryFlags,
- *   RagQueryResult
+ *   RagQueryResult,
+ *   MindConfig
  * >({
  *   flags: {
  *     text: { type: 'string', required: true },
@@ -323,13 +330,13 @@ export interface CommandConfig<
  *   },
  * });
  *
- * // Command with typed env variables
+ * // Command with typed env variables (fifth parameter)
  * type Env = {
  *   OPENAI_API_KEY: string;
  *   DEBUG?: string;
  * };
  *
- * export const envAwareHandler = defineCommand<Config, Flags, Result, Argv, Env>({
+ * export const envAwareHandler = defineCommand<Flags, Result, Config, Argv, Env>({
  *   env: {
  *     OPENAI_API_KEY: { required: true },
  *     DEBUG: { required: false },
@@ -346,13 +353,13 @@ export interface CommandConfig<
  * ```
  */
 export function defineCommand<
-  TConfig = any,
   TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
   TResult extends CommandResult = CommandResult,
+  TConfig = any,
   TArgv extends readonly string[] = string[],
   TEnv = Record<string, string | undefined>
 >(
-  config: CommandConfig<TConfig, TFlags, TResult, TArgv, TEnv>
+  config: CommandConfig<TFlags, TResult, TConfig, TArgv, TEnv>
 ): (ctx: CliContext, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
   const { name, flags, analytics, handler, formatter, env: envSchema } = config;
   const flagSchema = defineFlags(flags);
