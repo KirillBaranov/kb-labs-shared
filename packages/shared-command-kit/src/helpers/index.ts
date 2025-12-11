@@ -26,6 +26,9 @@
 // Platform singleton
 export { usePlatform, isPlatformConfigured } from './use-platform';
 
+// Config access
+export { useConfig } from './use-config';
+
 // Core services
 export { useLogger, useLoggerWithContext } from './use-logger';
 export { useLLM, isLLMAvailable } from './use-llm';
