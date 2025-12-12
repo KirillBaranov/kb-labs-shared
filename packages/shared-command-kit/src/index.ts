@@ -4,6 +4,7 @@
  */
 
 import type { CliContext } from '@kb-labs/cli-contracts';
+import type { PluginContextV2 } from '@kb-labs/plugin-runtime';
 import { TimingTracker } from '@kb-labs/shared-cli-ui';
 import { defineFlags, validateFlags, type FlagSchemaDefinition, type InferFlags, FlagValidationError } from './flags/index';
 import { trackCommand, type TrackingConfig } from './analytics/index';
@@ -360,12 +361,12 @@ export function defineCommand<
   TEnv = Record<string, string | undefined>
 >(
   config: CommandConfig<TFlags, TResult, TConfig, TArgv, TEnv>
-): (ctx: CliContext, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
+): (ctx: PluginContextV2, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
   const { name, flags, analytics, handler, formatter, env: envSchema } = config;
   const flagSchema = defineFlags(flags);
 
   return async function commandHandler(
-    ctx: CliContext,
+    ctx: PluginContextV2,
     argv: string[],
     rawFlags: Record<string, unknown>
   ): Promise<number> {
@@ -421,20 +422,21 @@ export function defineCommand<
     }
 
     // Enhance context with tracker and output helpers
+    // IMPORTANT: Use Object.defineProperty instead of spread operator to preserve all PluginContext fields
+    // The spread operator creates a shallow copy which loses some fields from the original context
     const outputHelpers = createOutputHelpers();
-    const enhancedCtx: EnhancedCliContext<TConfig, TEnv> = {
-      ...ctx,
-      tracker,
-      success: outputHelpers.success,
-      error: outputHelpers.error,
-      warning: outputHelpers.warning,
-      info: outputHelpers.info,
-      result: outputHelpers.result,
-      // config is passed through from base ctx (auto-loaded by plugin adapter)
-      config: (ctx as any).config as TConfig | undefined,
-      // env is validated process.env typed as TEnv
-      env: validatedEnv,
-    };
+
+    // Add helpers via mutation (preserves all original context fields)
+    const baseCtx = ctx as any;
+    Object.defineProperty(baseCtx, 'tracker', { value: tracker, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'success', { value: outputHelpers.success, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'error', { value: outputHelpers.error, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'warning', { value: outputHelpers.warning, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'info', { value: outputHelpers.info, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'result', { value: outputHelpers.result, writable: false, enumerable: true, configurable: false });
+    Object.defineProperty(baseCtx, 'env', { value: validatedEnv, writable: false, enumerable: true, configurable: false });
+
+    const enhancedCtx: EnhancedCliContext<TConfig, TEnv> = baseCtx;
 
     // Setup analytics if configured
     // Note: ctx.analytics may not exist in CliContext, so we pass undefined

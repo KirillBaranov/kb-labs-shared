@@ -9,6 +9,7 @@ import {
   type FlagSchemaDefinition,
   type InferFlags,
   type TrackingConfig,
+  type EnhancedCliContext,
 } from './index';
 import type { Command, CommandGroup, FlagDefinition } from '@kb-labs/cli-contracts/command';
 
@@ -67,12 +68,10 @@ export interface SystemCommandConfig<
   flags: TFlags;
   /** Analytics configuration */
   analytics?: Omit<TrackingConfig, 'command'> & { command?: string };
-  /** Command handler - receives inferred flags and must return TResult */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handler: (ctx: any, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
+  /** Command handler - receives EnhancedCliContext (PluginContextV2 + helpers) and must return TResult */
+  handler: (ctx: EnhancedCliContext, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
   /** Optional formatter - receives TResult with inferred flags */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formatter?: (result: TResult, ctx: any, flags: InferFlags<TFlags>, argv?: TArgv) => void;
+  formatter?: (result: TResult, ctx: EnhancedCliContext, flags: InferFlags<TFlags>, argv?: TArgv) => void;
 }
 
 /**
@@ -88,7 +87,7 @@ export interface SystemCommandConfig<
  * @example
  * ```typescript
  * import { defineSystemCommand, type CommandResult, type FlagSchemaDefinition } from '@kb-labs/shared-command-kit';
- * 
+ *
  * // Simple command with automatic flag type inference (RECOMMENDED)
  * export const helloCommand = defineSystemCommand<CommandResult & { message: string }>({
  *   name: 'hello',
@@ -98,9 +97,13 @@ export interface SystemCommandConfig<
  *     name: { type: 'string', description: 'Name to greet' },
  *   } satisfies FlagSchemaDefinition, // Preserves literal types for type inference
  *   async handler(ctx, argv, flags) {
+ *     // ctx is EnhancedCliContext (extends PluginContextV2)
+ *     // ctx.cwd - working directory (V2 promoted field)
+ *     // ctx.ui - primary output API
+ *     // ctx.success(), ctx.error() - output helpers
  *     // flags.name is inferred as string | undefined
  *     const message = `Hello, ${flags.name || 'World'}!`;
- *     ctx.output?.write(message);
+ *     ctx.ui.message(message);
  *     return { ok: true, message };
  *   },
  * });

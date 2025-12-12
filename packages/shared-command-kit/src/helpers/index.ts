@@ -26,6 +26,10 @@
 // Platform singleton
 export { usePlatform, isPlatformConfigured } from './use-platform';
 
+// Context types and helpers
+export type { EnhancedCliContext, CliContext, PluginContextV2 } from './context';
+export { TimingTracker } from './context';
+
 // Config access
 export { useConfig } from './use-config';
 

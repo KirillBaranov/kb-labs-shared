@@ -6,11 +6,11 @@
 // Re-export TimingTracker from shared-cli-ui
 export { TimingTracker } from '@kb-labs/shared-cli-ui';
 
-// Re-export CliContext type
+// Re-export CliContext type (deprecated - use PluginContextV2)
 export type { CliContext } from '@kb-labs/cli-contracts';
+export type { PluginContextV2 } from '@kb-labs/plugin-runtime';
 
-import type { CliContext as BaseCliContext } from '@kb-labs/cli-contracts';
-import type { PlatformServices } from '@kb-labs/plugin-runtime';
+import type { PluginContextV2 as BasePluginContext } from '@kb-labs/plugin-runtime';
 
 /**
  * Enhanced context with tracker and output helpers
@@ -18,7 +18,7 @@ import type { PlatformServices } from '@kb-labs/plugin-runtime';
 import type { TimingTracker } from '@kb-labs/shared-cli-ui';
 import type { OutputHelpers } from '../output-helpers';
 
-export interface EnhancedCliContext<TConfig = any, TEnv = Record<string, string | undefined>> extends Omit<BaseCliContext, 'env' | 'config'> {
+export interface EnhancedCliContext<TConfig = any, TEnv = Record<string, string | undefined>> extends BasePluginContext<TConfig> {
   /** Timing tracker instance */
   tracker: TimingTracker;
 
@@ -28,16 +28,6 @@ export interface EnhancedCliContext<TConfig = any, TEnv = Record<string, string 
   warning: OutputHelpers['warning'];
   info: OutputHelpers['info'];
   result: OutputHelpers['result'];
-
-  /** Platform services (available in plugin-aware hosts) */
-  platform?: PlatformServices;
-
-  /**
-   * Product configuration (auto-loaded from kb.config.json)
-   * Available when command is executed via plugin adapter.
-   * Type-safe when TConfig is specified in defineCommand<TConfig, ...>()
-   */
-  config?: TConfig;
 
   /**
    * Validated environment variables.
