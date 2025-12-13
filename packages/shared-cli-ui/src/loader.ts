@@ -1,5 +1,7 @@
 /**
  * Progress indicators and loaders for CLI operations
+ *
+ * Periodic animation implementation (works in child processes as multi-line output).
  */
 
 import { safeColors, safeSymbols } from './colors';
@@ -17,13 +19,14 @@ export interface LoaderOptions {
   jsonMode?: boolean;
 }
 
+const SPINNER_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+
 export class Loader {
-  private interval: NodeJS.Timeout | null = null;
   private isActive = false;
-  private spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-  private spinnerIndex = 0;
   private options: LoaderOptions;
-  private lastText: string = '';
+  private frameIndex = 0;
+  private intervalId?: NodeJS.Timeout;
+  private currentText: string;  // ← Реактивная переменная для текста
 
   constructor(options: LoaderOptions = {}) {
     this.options = {
@@ -32,103 +35,89 @@ export class Loader {
       jsonMode: false,
       ...options,
     };
+    this.currentText = this.options.text ?? 'Loading...';
   }
 
   start(): void {
-    if (this.options.jsonMode || this.isActive) {return;}
-    
+    if (this.options.jsonMode || this.isActive) {
+      return;
+    }
     this.isActive = true;
-    this.spinnerIndex = 0;
-    this.lastText = this.options.text ?? 'Loading...';
-    
-    if (this.options.spinner) {
-      this.startSpinner();
-    } else if (this.options.total !== undefined) {
-      this.updateProgress();
+
+    // Start periodic animation updates (every 200ms)
+    if (this.options.spinner && !this.options.jsonMode) {
+      this.intervalId = setInterval(() => {
+        if (!this.isActive) {
+          this.clearInterval();
+          return;
+        }
+
+        const char = SPINNER_CHARS[this.frameIndex % SPINNER_CHARS.length];
+        process.stdout.write(`\r${char} ${this.currentText}`);  // ← Читаем реактивный текст
+        this.frameIndex++;
+      }, 200);
     }
   }
 
   update(options: Partial<LoaderOptions>): void {
     this.options = { ...this.options, ...options };
-    
+
     if (!this.isActive || this.options.jsonMode) {return;}
-    
-    if (this.options.spinner) {
-      const text = this.options.text ?? 'Loading...';
-      // Update lastText and force redraw if text changed
-      if (text !== this.lastText) {
-        this.lastText = text;
-        // Force immediate redraw with current spinner char
-        const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
-        if (process.stdout.isTTY) {
-          process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
-        }
+
+    // Update reactive text - setInterval will pick it up on next tick
+    if (options.text !== undefined) {
+      this.currentText = options.text;
+    }
+
+    // For manual updates when no interval (progress bar mode)
+    if (!this.intervalId) {
+      if (this.options.spinner) {
+        const text = this.options.text ?? 'Loading...';
+        console.log(`${safeSymbols.info} ${text}`);
+      } else if (this.options.total !== undefined) {
+        this.updateProgress();
       }
-      // Spinner will continue updating automatically on interval
-    } else if (this.options.total !== undefined) {
-      this.updateProgress();
     }
   }
 
   stop(): void {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
     this.isActive = false;
-    
-    if (!this.options.jsonMode) {
-      // Clear the line
-      process.stdout.write('\r\x1b[K');
-    }
+    this.clearInterval();
   }
 
   succeed(message?: string): void {
     this.stop();
     if (!this.options.jsonMode && message) {
-      console.log(`\r${safeSymbols.success} ${message}`);
+      process.stdout.write(`\r\x1b[K${safeSymbols.success} ${message}\n`);
     }
   }
 
   fail(message?: string): void {
     this.stop();
     if (!this.options.jsonMode && message) {
-      console.log(`\r${safeSymbols.error} ${message}`);
+      process.stdout.write(`\r\x1b[K${safeSymbols.error} ${message}\n`);
     }
   }
 
-  private startSpinner(): void {
-    this.interval = setInterval(() => {
-      if (!this.isActive) {return;}
-      
-      const char = this.spinnerChars[this.spinnerIndex] ?? '⠋';
-      const text = this.options.text ?? 'Loading...';
-      
-      // Only update spinner char, text is managed by update() method
-      // Use \r to move cursor to start of line, \x1b[K to clear to end of line
-      // This overwrites the same line instead of creating new lines
-      if (process.stdout.isTTY) {
-        // In TTY, use \r to overwrite same line with current spinner char and text
-        process.stdout.write(`\r\x1b[K${safeColors.info(char)} ${text}`);
-      }
-      // For non-TTY (pipes, redirects), don't write here - update() handles it
-      
-      this.spinnerIndex = (this.spinnerIndex + 1) % this.spinnerChars.length;
-    }, 100);
+  private clearInterval(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
   }
 
   private updateProgress(): void {
     if (this.options.total === undefined || this.options.current === undefined) {return;}
-    
+
     const current = this.options.current;
     const total = this.options.total;
     const percentage = Math.round((current / total) * 100);
     const barLength = 20;
     const filledLength = Math.round((current / total) * barLength);
-    
+
     const bar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
     const text = this.options.text || 'Progress';
-    
+
     process.stdout.write(`\r${safeColors.info('→')} ${text}... ${bar} ${percentage}% (${current}/${total})`);
   }
 }
@@ -172,4 +161,25 @@ export function showError(text: string, jsonMode = false): void {
   if (!jsonMode) {
     console.log(`${safeSymbols.error} ${text}`);
   }
+}
+
+/**
+ * Create a loader for progress indication
+ *
+ * @param text - Text to display while loading
+ * @param options - Optional configuration
+ * @returns Loader instance
+ *
+ * @example
+ * ```typescript
+ * import { useLoader } from '@kb-labs/sdk';
+ *
+ * const loader = useLoader('Processing data...');
+ * loader.start();
+ * // ... do work ...
+ * loader.succeed('Processing complete!');
+ * ```
+ */
+export function useLoader(text: string, options?: Partial<LoaderOptions>): Loader {
+  return new Loader({ text, ...options });
 }
