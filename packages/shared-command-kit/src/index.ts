@@ -351,6 +351,46 @@ export interface CommandConfig<
  *     return { ok: true };
  *   },
  * });
+ *
+ * // Command with UI output (new convenience methods)
+ * export const processDataHandler = defineCommand<
+ *   { json: { type: 'boolean' } },
+ *   CommandResult & { processed: number; items: string[] }
+ * >({
+ *   name: 'process:data',
+ *   flags: {
+ *     json: { type: 'boolean', default: false },
+ *   },
+ *   async handler(ctx, argv, flags) {
+ *     // Show progress (CLI only, no-op in REST/Workflow)
+ *     ctx.ui?.startProgress('loading', 'Fetching data...');
+ *     const data = await fetchData();
+ *     ctx.ui?.completeProgress('loading', 'Data loaded!');
+ *
+ *     // Process data
+ *     const result = processItems(data);
+ *
+ *     // UI output (CLI only)
+ *     if (!flags.json) {
+ *       if (ctx.ui?.success) {
+ *         ctx.ui.success('Processing Complete', [
+ *           { header: 'Summary', items: [`Processed: ${result.processed}`, `Total: ${result.items.length}`] },
+ *           { items: result.items.map(i => `✓ ${i}`) },
+ *         ]);
+ *       }
+ *     } else {
+ *       ctx.ui?.json(result);
+ *     }
+ *
+ *     // Return value (for invoke/REST/workflow)
+ *     return { ok: true, ...result };
+ *   },
+ * });
+ *
+ * // Note: Use ctx.ui.showError() for error display (error() is from PresenterFacade)
+ * // Available methods: success(), showError(), warning(), info()
+ * // Progress helpers: startProgress(), updateProgress(), completeProgress(), failProgress()
+ * // Low-level UI: table(), keyValue(), list(), box(), sideBox()
  * ```
  */
 export function defineCommand<

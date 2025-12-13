@@ -95,15 +95,26 @@ export interface SystemCommandConfig<
  *   category: 'system',
  *   flags: {
  *     name: { type: 'string', description: 'Name to greet' },
+ *     json: { type: 'boolean', default: false },
  *   } satisfies FlagSchemaDefinition, // Preserves literal types for type inference
  *   async handler(ctx, argv, flags) {
  *     // ctx is EnhancedCliContext (extends PluginContextV2)
  *     // ctx.cwd - working directory (V2 promoted field)
- *     // ctx.ui - primary output API
- *     // ctx.success(), ctx.error() - output helpers
+ *     // ctx.ui - UI output API with new convenience methods
  *     // flags.name is inferred as string | undefined
  *     const message = `Hello, ${flags.name || 'World'}!`;
- *     ctx.ui.message(message);
+ *
+ *     // UI output (CLI only, no-op in REST/Workflow)
+ *     if (!flags.json) {
+ *       if (ctx.ui?.success) {
+ *         ctx.ui.success('Greeting', [
+ *           { items: [message] },
+ *         ]);
+ *       }
+ *     } else {
+ *       ctx.ui?.json({ message });
+ *     }
+ *
  *     return { ok: true, message };
  *   },
  * });
@@ -113,20 +124,33 @@ export interface SystemCommandConfig<
  *   workflows: Array<{ id: string }>;
  *   total: number;
  * };
- * 
+ *
  * export const wfList = defineSystemCommand<WorkflowListResult>({
  *   name: 'list',
  *   description: 'List workflows',
  *   flags: {
  *     source: { type: 'string', default: 'all' },
  *     tag: { type: 'string' },
- *     json: { type: 'boolean' },
+ *     json: { type: 'boolean', default: false },
  *   } satisfies FlagSchemaDefinition, // TypeScript infers flag types automatically
  *   async handler(ctx, argv, flags) {
  *     // flags.source is inferred as string
  *     // flags.tag is inferred as string | undefined
  *     // flags.json is inferred as boolean
  *     const workflows = await listWorkflows(flags.source, flags.tag);
+ *
+ *     // UI output (new convenience methods)
+ *     if (!flags.json) {
+ *       if (ctx.ui?.success) {
+ *         ctx.ui.success('Workflows', [
+ *           { header: 'Summary', items: [`Total: ${workflows.length}`, `Source: ${flags.source}`] },
+ *           { items: workflows.map(w => `• ${w.id}`) },
+ *         ]);
+ *       }
+ *     } else {
+ *       ctx.ui?.json({ workflows, total: workflows.length });
+ *     }
+ *
  *     return { ok: true, workflows, total: workflows.length };
  *   },
  * });
@@ -143,10 +167,21 @@ export interface SystemCommandConfig<
  *   },
  *   async handler(ctx, argv, flags) {
  *     // flags['workflow-id'] is inferred as string (required)
+ *
+ *     // Progress tracking (CLI only, no-op in REST/Workflow)
+ *     ctx.ui?.startProgress('running', 'Starting workflow...');
  *     const run = await executeWorkflow(flags['workflow-id']);
+ *     ctx.ui?.completeProgress('running', 'Workflow started!');
+ *
  *     return { ok: true, run };
  *   },
  * });
+ *
+ * // Note: System commands support all UI convenience methods:
+ * // - ctx.ui.success() / showError() / warning() / info() - Result display with sideBox
+ * // - ctx.ui.startProgress() / completeProgress() / failProgress() - Progress tracking
+ * // - ctx.ui.table() / keyValue() / list() - Low-level formatting
+ * // All UI methods are CLI-only and no-op in REST/Workflow contexts
  * ```
  */
 // Overload for explicit TFlags and TResult

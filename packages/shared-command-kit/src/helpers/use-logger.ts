@@ -28,6 +28,7 @@ import type { ILogger } from '@kb-labs/core-platform';
  * Supports child loggers with additional context.
  *
  * **Methods:**
+ * - `logger.trace(message, meta?)` - Trace-level logs (most verbose)
  * - `logger.debug(message, meta?)` - Debug-level logs
  * - `logger.info(message, meta?)` - Info-level logs
  * - `logger.warn(message, meta?)` - Warning-level logs
