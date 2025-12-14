@@ -60,4 +60,4 @@ packages/*/coverage/
 # custom
 # ───────────────
 *.sqlite
-*.db
+*.db.npmrc
