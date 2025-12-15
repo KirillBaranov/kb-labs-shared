@@ -8,7 +8,6 @@ import {
   type CommandResult,
   type FlagSchemaDefinition,
   type InferFlags,
-  type TrackingConfig,
   type EnhancedCliContext,
 } from './index';
 import type { Command, CommandGroup, FlagDefinition } from '@kb-labs/cli-contracts/command';
@@ -66,8 +65,18 @@ export interface SystemCommandConfig<
   examples?: string[];
   /** Flag schema definition - TypeScript will infer TFlags from this */
   flags: TFlags;
-  /** Analytics configuration */
-  analytics?: Omit<TrackingConfig, 'command'> & { command?: string };
+  /**
+   * Analytics configuration (legacy field, kept for backward compatibility)
+   * Use ctx.platform.analytics.track() or withAnalytics() helper instead
+   */
+  analytics?: {
+    command?: string;
+    startEvent?: string;
+    finishEvent?: string;
+    actor?: string;
+    context?: Record<string, unknown>;
+    includeFlags?: boolean;
+  };
   /** Command handler - receives EnhancedCliContext (PluginContextV2 + helpers) and must return TResult */
   handler: (ctx: EnhancedCliContext, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
   /** Optional formatter - receives TResult with inferred flags */

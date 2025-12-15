@@ -7,7 +7,6 @@ import type { CliContext } from '@kb-labs/cli-contracts';
 import type { PluginContextV2 } from '@kb-labs/plugin-runtime';
 import { TimingTracker } from '@kb-labs/shared-cli-ui';
 import { defineFlags, validateFlags, type FlagSchemaDefinition, type InferFlags, FlagValidationError } from './flags/index';
-import { trackCommand, type TrackingConfig } from './analytics/index';
 import { formatError } from './errors/index';
 import type { EnhancedCliContext } from './helpers/context';
 import { createOutputHelpers } from './output-helpers';
@@ -242,8 +241,18 @@ export interface CommandConfig<
   name?: string;
   /** Flag schema definition */
   flags: TFlags;
-  /** Analytics configuration */
-  analytics?: Omit<TrackingConfig, 'command'> & { command?: string };
+  /**
+   * Analytics configuration (legacy field, kept for backward compatibility)
+   * Use ctx.platform.analytics.track() or withAnalytics() helper instead
+   */
+  analytics?: {
+    command?: string;
+    startEvent?: string;
+    finishEvent?: string;
+    actor?: string;
+    context?: Record<string, unknown>;
+    includeFlags?: boolean;
+  };
   /**
    * Optional environment variable schema for validation.
    * If provided, required env vars will be validated at runtime.
@@ -478,35 +487,13 @@ export function defineCommand<
 
     const enhancedCtx: EnhancedCliContext<TConfig, TEnv> = baseCtx;
 
-    // Setup analytics if configured
-    // Note: ctx.analytics may not exist in CliContext, so we pass undefined
-    // The trackCommand function will handle the case when analytics is not available
-    let analyticsHelper: ReturnType<typeof trackCommand> | null = null;
-    if (analytics) {
-      analyticsHelper = trackCommand((ctx as { analytics?: unknown }).analytics, {
-        command: analytics.command || name || 'unknown',
-        startEvent: analytics.startEvent,
-        finishEvent: analytics.finishEvent,
-        actor: analytics.actor,
-        context: analytics.context,
-        includeFlags: analytics.includeFlags,
-      });
-    }
-
-    // Run command within analytics scope (or directly if no analytics)
+    // Run command
     const runCommand = async (): Promise<number> => {
       try {
         // Log start
         if (name) {
           ctx.logger?.info(`Command started: ${name}`, {
             flags: analytics?.includeFlags ? validatedFlags : undefined,
-          });
-        }
-
-        // Emit started event
-        if (analyticsHelper) {
-          await analyticsHelper.emit('started', {
-            ...(analytics?.includeFlags ? validatedFlags : {}),
           });
         }
 
@@ -552,16 +539,7 @@ export function defineCommand<
           });
         }
 
-        // Emit finished event
-        if (analyticsHelper) {
-          await analyticsHelper.emit('finished', {
-            result: resultData.ok ? 'success' : 'failed',
-            timingMs: tracker.total(),
-            ...(analytics?.includeFlags ? validatedFlags : {}),
-          });
-        }
-
-            // Format output
+        // Format output
             if (formatter) {
               formatter(resultData, enhancedCtx, validatedFlags, argv as unknown as TArgv);
             } else {
@@ -589,15 +567,6 @@ export function defineCommand<
           });
         }
 
-        // Emit error event
-        if (analyticsHelper) {
-          await analyticsHelper.emit('finished', {
-            result: 'error',
-            error: errorMessage,
-            timingMs: tracker.total(),
-          });
-        }
-
         // Format error
         const formatted = formatError(error, {
           jsonMode,
@@ -614,14 +583,7 @@ export function defineCommand<
       }
     };
 
-    // Run within analytics scope if available
-    if (analyticsHelper) {
-      return await analyticsHelper.scope(async () => {
-        return await runCommand();
-      });
-    } else {
-      return await runCommand();
-    }
+    return await runCommand();
   };
 }
 
