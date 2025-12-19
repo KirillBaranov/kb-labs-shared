@@ -17,6 +17,7 @@ export * from './table';
 export * from './debug';
 export * from './command-runner';
 export * from './utils/flags';
+export * from './utils/env';
 export * from './utils/context';
 export * from './utils/path';
 
