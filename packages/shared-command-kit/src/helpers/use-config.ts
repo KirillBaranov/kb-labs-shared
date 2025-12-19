@@ -81,30 +81,20 @@ export async function useConfig<T = any>(productId?: string, profileId?: string)
   let effectiveProductId = productId;
   if (!effectiveProductId) {
     effectiveProductId = (globalThis as any).__KB_CONFIG_SECTION__;
-    console.log('[useConfig] Auto-detected productId from context:', effectiveProductId);
   }
 
-  console.log('[useConfig] called with productId:', effectiveProductId, 'profileId:', profileId);
-
   if (!effectiveProductId) {
-    console.log('[useConfig] No productId provided and could not auto-detect from context');
     return undefined;
   }
 
   const { usePlatform } = await import('./use-platform.js');
   const platform = usePlatform();
-  console.log('[useConfig] platform:', platform ? 'EXISTS' : 'UNDEFINED');
 
   if (!platform) {
-    console.log('[useConfig] Platform not initialized, returning undefined');
     return undefined;
   }
 
-  console.log('[useConfig] platform.config:', platform.config ? 'EXISTS' : 'UNDEFINED');
-  console.log('[useConfig] Calling platform.config.getConfig()');
-
   // Returns ONLY the product-specific config, not the entire kb.config.json
   const result = await platform.config.getConfig(effectiveProductId, profileId) as T | undefined;
-  console.log('[useConfig] Got result:', result ? 'EXISTS' : 'UNDEFINED');
   return result;
 }

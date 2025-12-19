@@ -15,6 +15,12 @@
       "@kb-labs/core-platform/*": [
         "../kb-labs-core/packages/core-platform/src/*"
       ],
+      "@kb-labs/core-resource-broker": [
+        "../kb-labs-core/packages/core-resource-broker/src/index.ts"
+      ],
+      "@kb-labs/core-resource-broker/*": [
+        "../kb-labs-core/packages/core-resource-broker/src/*"
+      ],
       "@kb-labs/core-runtime": [
         "../kb-labs-core/packages/core-runtime/src/index.ts"
       ],
@@ -26,12 +32,6 @@
       ],
       "@kb-labs/core-workspace/*": [
         "../kb-labs-core/packages/core-workspace/src/*"
-      ],
-      "@kb-labs/plugin-manifest": [
-        "../kb-labs-plugin/packages/plugin-manifest/src/index.ts"
-      ],
-      "@kb-labs/plugin-manifest/*": [
-        "../kb-labs-plugin/packages/plugin-manifest/src/*"
       ],
       "@kb-labs/plugin-runtime": [
         "../kb-labs-plugin/packages/plugin-runtime/src/index.ts"
