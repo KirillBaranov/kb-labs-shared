@@ -8,13 +8,48 @@ import {
   type CommandResult,
   type FlagSchemaDefinition,
   type InferFlags,
-  type EnhancedCliContext,
 } from './index';
-import type { Command, CommandGroup, FlagDefinition } from '@kb-labs/cli-contracts/command';
+import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
+
+/**
+ * Flag definition for Command interface
+ */
+interface FlagDefinition {
+  name: string;
+  type: 'string' | 'boolean' | 'number' | 'array';
+  alias?: string;
+  description?: string;
+  default?: unknown;
+  required?: boolean;
+  choices?: string[];
+}
+
+/**
+ * Command definition for system commands
+ */
+export interface Command {
+  name: string;
+  describe: string;
+  longDescription?: string;
+  category?: string;
+  aliases?: string[];
+  flags?: FlagDefinition[];
+  examples?: string[];
+  run: (ctx: PluginContextV3, argv: string[], flags: Record<string, unknown>) => Promise<number>;
+}
+
+/**
+ * Command group definition
+ */
+export interface CommandGroup {
+  name: string;
+  describe: string;
+  commands: Command[];
+}
 
 /**
  * Convert flag schema definition to FlagDefinition[] format
- * Used for compatibility with legacy Command interface
+ * Used for compatibility with Command interface
  */
 function convertFlagSchema(schema: FlagSchemaDefinition): FlagDefinition[] {
   return Object.entries(schema).map(([name, def]) => {
@@ -77,10 +112,10 @@ export interface SystemCommandConfig<
     context?: Record<string, unknown>;
     includeFlags?: boolean;
   };
-  /** Command handler - receives EnhancedCliContext (PluginContextV2 + helpers) and must return TResult */
-  handler: (ctx: EnhancedCliContext, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
+  /** Command handler - receives PluginContextV3 and must return TResult */
+  handler: (ctx: PluginContextV3, argv: TArgv, flags: InferFlags<TFlags>) => Promise<number | TResult> | number | TResult;
   /** Optional formatter - receives TResult with inferred flags */
-  formatter?: (result: TResult, ctx: EnhancedCliContext, flags: InferFlags<TFlags>, argv?: TArgv) => void;
+  formatter?: (result: TResult, ctx: PluginContextV3, flags: InferFlags<TFlags>, argv?: TArgv) => void;
 }
 
 /**
@@ -107,7 +142,7 @@ export interface SystemCommandConfig<
  *     json: { type: 'boolean', default: false },
  *   } satisfies FlagSchemaDefinition, // Preserves literal types for type inference
  *   async handler(ctx, argv, flags) {
- *     // ctx is EnhancedCliContext (extends PluginContextV2)
+ *     // ctx is EnhancedCliContext (extends PluginContextV3)
  *     // ctx.cwd - working directory (V2 promoted field)
  *     // ctx.ui - UI output API with new convenience methods
  *     // flags.name is inferred as string | undefined

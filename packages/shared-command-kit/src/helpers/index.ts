@@ -27,8 +27,7 @@
 export { usePlatform, isPlatformConfigured } from './use-platform';
 
 // Context types and helpers
-export type { EnhancedCliContext, CliContext, PluginContextV2 } from './context';
-export { TimingTracker } from './context';
+export type { PluginContextV3 } from './context';
 
 // Config access
 export { useConfig } from './use-config';
@@ -36,5 +35,7 @@ export { useConfig } from './use-config';
 // Core services
 export { useLogger, useLoggerWithContext } from './use-logger';
 export { useLLM, isLLMAvailable } from './use-llm';
+export { useEmbeddings, isEmbeddingsAvailable } from './use-embeddings';
+export { useVectorStore, isVectorStoreAvailable } from './use-vector-store';
 export { useAnalytics, trackAnalyticsEvent } from './use-analytics';
 export { useStorage } from './use-storage';

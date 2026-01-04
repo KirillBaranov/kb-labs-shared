@@ -3,4 +3,9 @@
  * REST handler definition helpers
  */
 
-export * from './define-handler';
+export {
+  defineHandler,
+  type Handler,
+  type HandlerDefinition,
+  type RestInput,
+} from './define-handler.js';

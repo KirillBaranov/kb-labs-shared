@@ -18,10 +18,10 @@
  * ```
  */
 
-import type { ManifestV2 } from '@kb-labs/plugin-manifest';
+import type { ManifestV3 } from '@kb-labs/plugin-contracts';
 
 // Type for permissions object
-export type PermissionsConfig = NonNullable<ManifestV2['permissions']>;
+export type PermissionsConfig = NonNullable<ManifestV3['permissions']>;
 
 /**
  * Deep merge multiple permission objects

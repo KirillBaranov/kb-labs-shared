@@ -3,8 +3,7 @@
  * @module @kb-labs/shared-command-kit/jobs
  */
 
-import type { JobDecl, PermissionSpec } from '@kb-labs/plugin-manifest';
-import type { PluginHandlerContext } from '@kb-labs/plugin-runtime';
+import type { JobDecl, PermissionSpec, PluginContextV3 } from '@kb-labs/plugin-contracts';
 
 /**
  * Job input passed to handler at runtime
@@ -27,7 +26,7 @@ export interface JobInput {
 export type JobHandler<
   TInput extends JobInput = JobInput,
   TOutput = { ok: boolean; [key: string]: unknown }
-> = (input: TInput, ctx: PluginHandlerContext) => Promise<TOutput>;
+> = (input: TInput, ctx: PluginContextV3) => Promise<TOutput>;
 
 /**
  * Job definition configuration

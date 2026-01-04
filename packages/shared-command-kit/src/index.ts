@@ -3,13 +3,9 @@
  * Command Kit - High-level API and utilities for building CLI commands
  */
 
-import type { CliContext } from '@kb-labs/cli-contracts';
-import type { PluginContextV2 } from '@kb-labs/plugin-runtime';
-import { TimingTracker } from '@kb-labs/shared-cli-ui';
+import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
 import { defineFlags, validateFlags, type FlagSchemaDefinition, type InferFlags, FlagValidationError } from './flags/index';
 import { formatError } from './errors/index';
-import type { EnhancedCliContext } from './helpers/context';
-import { createOutputHelpers } from './output-helpers';
 
 // Re-exports
 export * from './flags/index';
@@ -17,13 +13,15 @@ export * from './analytics/index';
 export * from './errors/index';
 export * from './helpers/index';
 export * from './define-system-command';
-export * from './output-helpers';
+// Removed: output-helpers (success, error, warning, info, result helpers) - no longer used
 export * from './manifest';
-export * from './permissions';
+// TODO: V3 migration - permissions helpers need to be rewritten for V3 PermissionSpec structure
+// export * from './permissions';
 export * from './validation/index';
 export * from './rest/index';
 export * from './lifecycle/index';
-export * from './studio/index';
+// TODO: Remove studio - it's a stub that throws error, not implemented
+// export * from './studio/index';
 export * from './jobs';
 export type { CommandOutput } from '@kb-labs/shared-cli-ui';
 
@@ -134,7 +132,7 @@ export type CommandHandler<
   TArgv extends readonly string[] = string[],
   TEnv = Record<string, string | undefined>
 > = (
-  ctx: EnhancedCliContext<TConfig, TEnv>,
+  ctx: PluginContextV3,
   argv: TArgv,
   flags: TFlags
 ) => Promise<number | TResult> | number | TResult;
@@ -174,7 +172,7 @@ export type CommandFormatter<
   TEnv = Record<string, string | undefined>
 > = (
   result: TResult,
-  ctx: EnhancedCliContext<TConfig, TEnv>,
+  ctx: PluginContextV3,
   flags: TFlags,
   argv?: TArgv
 ) => void;
@@ -303,7 +301,7 @@ export interface CommandConfig<
  *     finishEvent: 'RELEASE_RUN_FINISHED',
  *   },
  *   async handler(ctx, argv, flags) {
- *     ctx.logger?.info('Release started', { scope: flags.scope });
+ *     ctx.platform?.logger?.info('Release started', { scope: flags.scope });
  *     ctx.tracker.checkpoint('planning');
  *     // ... business logic
  *     return { ok: true, published: 5 };
@@ -410,16 +408,15 @@ export function defineCommand<
   TEnv = Record<string, string | undefined>
 >(
   config: CommandConfig<TFlags, TResult, TConfig, TArgv, TEnv>
-): (ctx: PluginContextV2, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
+): (ctx: PluginContextV3, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
   const { name, flags, analytics, handler, formatter, env: envSchema } = config;
   const flagSchema = defineFlags(flags);
 
   return async function commandHandler(
-    ctx: PluginContextV2,
+    ctx: PluginContextV3,
     argv: string[],
     rawFlags: Record<string, unknown>
   ): Promise<number> {
-    const tracker = new TimingTracker();
     const jsonMode = Boolean(rawFlags.json);
 
     // Validate flags
@@ -437,9 +434,9 @@ export function defineCommand<
       const formatted = formatError(error, { showStack, jsonMode });
 
       if (jsonMode) {
-        ctx.output?.json(formatted.json);
+        ctx.ui?.json(formatted.json);
       } else {
-        ctx.output?.error(formatted.message);
+        ctx.ui?.error(formatted.message);
       }
 
       // Return specific exit code for validation errors
@@ -461,61 +458,42 @@ export function defineCommand<
         const formatted = formatError(new Error(errorMessage), { jsonMode });
 
         if (jsonMode) {
-          ctx.output?.json(formatted.json);
+          ctx.ui?.json(formatted.json);
         } else {
-          ctx.output?.error(formatted.message);
+          ctx.ui?.error(formatted.message);
         }
 
         return 3; // EXIT_CODES.INVALID_FLAGS
       }
     }
 
-    // Enhance context with tracker and output helpers
-    // IMPORTANT: Use Object.defineProperty instead of spread operator to preserve all PluginContext fields
-    // The spread operator creates a shallow copy which loses some fields from the original context
-    const outputHelpers = createOutputHelpers();
-
-    // Add helpers via mutation (preserves all original context fields)
-    const baseCtx = ctx as any;
-    Object.defineProperty(baseCtx, 'tracker', { value: tracker, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'success', { value: outputHelpers.success, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'error', { value: outputHelpers.error, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'warning', { value: outputHelpers.warning, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'info', { value: outputHelpers.info, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'result', { value: outputHelpers.result, writable: false, enumerable: true, configurable: false });
-    Object.defineProperty(baseCtx, 'env', { value: validatedEnv, writable: false, enumerable: true, configurable: false });
-
-    const enhancedCtx: EnhancedCliContext<TConfig, TEnv> = baseCtx;
+    // Use pure PluginContextV3 - no enhancement needed
 
     // Run command
     const runCommand = async (): Promise<number> => {
       try {
         // Log start
         if (name) {
-          ctx.logger?.info(`Command started: ${name}`, {
+          ctx.platform?.logger?.info(`Command started: ${name}`, {
             flags: analytics?.includeFlags ? validatedFlags : undefined,
           });
         }
 
-        tracker.checkpoint('start');
-
-        // Call user handler
-        const result = await handler(enhancedCtx, argv as unknown as TArgv, validatedFlags);
-
-        tracker.checkpoint('complete');
+        // Call user handler with pure PluginContextV3
+        const result = await handler(ctx, argv as unknown as TArgv, validatedFlags);
 
         // Handle result
         let exitCode = 0;
-        let resultData: TResult & { timingMs?: number } = { ok: true } as TResult & { timingMs?: number };
+        let resultData: TResult = { ok: true } as TResult;
 
         if (typeof result === 'number') {
           exitCode = result;
-          resultData = { 
+          resultData = {
             ok: result === 0,
             status: result === 0 ? 'success' : 'failed',
-          } as TResult & { timingMs?: number };
+          } as TResult;
         } else if (result && typeof result === 'object' && 'ok' in result) {
-          resultData = result as TResult & { timingMs?: number };
+          resultData = result as TResult;
           // Ensure status is set if not provided
           if (!resultData.status) {
             resultData.status = resultData.ok ? 'success' : (resultData.error ? 'error' : 'failed');
@@ -523,34 +501,30 @@ export function defineCommand<
           exitCode = resultData.ok ? 0 : 1;
         } else if (result && typeof result === 'object') {
           // Result is an object but doesn't have 'ok' field - preserve all fields and add 'ok'
-          resultData = { ...(result as Record<string, unknown>), ok: true, status: 'success' } as TResult & { timingMs?: number };
+          resultData = { ...(result as Record<string, unknown>), ok: true, status: 'success' } as TResult;
         } else {
-          resultData = { ok: true, status: 'success' } as TResult & { timingMs?: number };
+          resultData = { ok: true, status: 'success' } as TResult;
         }
-
-        // Add timing to result
-        resultData.timingMs = tracker.total();
 
         // Log completion
         if (name) {
-          ctx.logger?.info(`Command completed: ${name}`, {
+          ctx.platform?.logger?.info(`Command completed: ${name}`, {
             ok: resultData.ok,
-            timingMs: tracker.total(),
           });
         }
 
         // Format output
             if (formatter) {
-              formatter(resultData, enhancedCtx, validatedFlags, argv as unknown as TArgv);
+              formatter(resultData, ctx, validatedFlags, argv as unknown as TArgv);
             } else {
           // Default formatting
           if (jsonMode) {
-            ctx.output?.json(resultData);
+            ctx.ui?.json(resultData);
           } else {
             if (resultData.ok) {
-              ctx.output?.write(`✓ ${name || 'Command'} completed`);
+              ctx.ui?.write(`✓ ${name || 'Command'} completed`);
             } else {
-              ctx.output?.error(`✗ ${name || 'Command'} failed`);
+              ctx.ui?.error(`✗ ${name || 'Command'} failed`);
             }
           }
         }
@@ -558,25 +532,22 @@ export function defineCommand<
         return exitCode;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorObj = error instanceof Error ? error : new Error(String(error));
 
         // Log error
         if (name) {
-          ctx.logger?.error(`Command failed: ${name}`, {
-            error: errorMessage,
-            timingMs: tracker.total(),
-          });
+          ctx.platform?.logger?.error(`Command failed: ${name}`, errorObj);
         }
 
         // Format error
         const formatted = formatError(error, {
           jsonMode,
-          timingMs: tracker.total(),
         });
 
         if (jsonMode) {
-          ctx.output?.json(formatted.json);
+          ctx.ui?.json(formatted.json);
         } else {
-          ctx.output?.error(formatted.message);
+          ctx.ui?.error(formatted.message);
         }
 
         return 1;

@@ -3,12 +3,12 @@
  * @module @kb-labs/shared-command-kit/manifest
  */
 
-import type { ManifestV2 } from '@kb-labs/plugin-manifest';
+import type { ManifestV3 } from '@kb-labs/plugin-contracts';
 
 /**
- * Define a ManifestV2 with type safety
+ * Define a ManifestV3 with type safety
  *
- * This is a type-safe wrapper for creating ManifestV2 objects.
+ * This is a type-safe wrapper for creating ManifestV3 objects.
  * It provides compile-time validation via TypeScript and optional
  * runtime validation via Zod (if enabled).
  *
@@ -46,14 +46,14 @@ import type { ManifestV2 } from '@kb-labs/plugin-manifest';
  * ```
  *
  * @param manifest - Manifest configuration
- * @returns ManifestV2 object
+ * @returns ManifestV3 object
  */
 export function defineManifest<TContracts = unknown>(
-  manifest: ManifestV2
-): ManifestV2 {
+  manifest: ManifestV3
+): ManifestV3 {
   // In development, you could add runtime validation here if needed:
   // if (process.env.NODE_ENV === 'development') {
-  //   validateManifestV2(manifest);
+  //   validateManifestV3(manifest);
   // }
 
   // For production builds, this is just an identity function
@@ -80,7 +80,7 @@ type FlagSchemaDefinition = Record<
  * Convert flag schema definition to CliFlagDecl[] for manifest
  *
  * This helper converts the flag schema format used in defineCommand
- * to the array format expected in ManifestV2.
+ * to the array format expected in ManifestV3.
  *
  * @example
  * ```typescript

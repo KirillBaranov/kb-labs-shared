@@ -1,327 +1,188 @@
 /**
- * REST Handler Definition
+ * REST Handler Definition (V3)
  *
- * Optional helper for defining REST handlers with automatic validation and error handling.
- * You can always use plain functions - this is just convenience.
+ * Define REST handlers compatible with plugin-runtime's runInProcess().
+ * Returns { execute } object with (ctx, input) signature.
  *
  * @example
  * ```typescript
- * import { defineRestHandler, schema } from '@kb-labs/shared-command-kit';
+ * import { defineHandler } from '@kb-labs/shared-command-kit';
  *
- * export const handleVerify = defineRestHandler({
- *   name: 'mind:verify',
- *   input: z.object({ cwd: schema.cwd() }),
- *   output: z.object({ ok: z.boolean(), cards: z.array(cardDataSchema) }),
- *   async handler(request, ctx) {
- *     const cwd = await ctx.resolveCwd(request.cwd);
- *     const result = await verifyIndexes(cwd);
- *     return { ok: true, cards: createCardList([...]) };
- *   },
+ * export default defineHandler({
+ *   async execute(ctx, input: { scope?: string }) {
+ *     const plan = await loadPlan(ctx.cwd);
+ *     return plan;
+ *   }
  * });
  * ```
  */
 
-import { z } from 'zod';
-import { resolveWorkspaceRoot } from '@kb-labs/core-workspace';
+import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
 
 /**
- * REST handler context (simplified version of PluginContext for REST handlers)
+ * REST input structure from route-mounter.
+ * Query params and body are separated to avoid conflicts.
  */
-export interface RestHandlerContext {
-  /** Request ID for tracing */
-  requestId: string;
-  /** Plugin ID */
-  pluginId: string;
-  /** Output directory (optional) */
-  outdir?: string;
-  /** Trace ID for distributed tracing */
-  traceId?: string;
-  /** Span ID for distributed tracing */
-  spanId?: string;
-  /** Parent span ID for distributed tracing */
-  parentSpanId?: string;
-  /** Runtime services (optional) */
-  runtime?: {
-    fetch: typeof fetch;
-    fs: any;
-    env: (key: string) => string | undefined;
-    log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, meta?: Record<string, unknown>) => void;
-    invoke?: <T = unknown>(request: any) => Promise<any>;
-    artifacts?: {
-      read: (request: any) => Promise<Buffer | object>;
-      write: (request: any) => Promise<{ path: string; meta: any }>;
-    };
-  };
+export interface RestInput<TQuery = unknown, TBody = unknown> {
+  query?: TQuery;
+  body?: TBody;
 }
 
 /**
- * Enhanced REST handler context with helper methods
+ * Handler interface expected by runInProcess().
  */
-export interface EnhancedRestContext extends RestHandlerContext {
-  /** Logger (always available, falls back to console) */
-  log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, meta?: Record<string, unknown>) => void;
-  /** Environment variable getter (always available, falls back to process.env) */
-  env: (key: string) => string | undefined;
-  /** Resolve current working directory from request, env, or auto-detect */
-  resolveCwd: (requestCwd?: string) => Promise<string>;
+export interface Handler<TConfig = unknown, TInput = unknown, TOutput = unknown> {
+  /**
+   * Execute the handler
+   */
+  execute(
+    ctx: PluginContextV3<TConfig>,
+    input: TInput
+  ): Promise<TOutput>;
 }
 
 /**
- * REST handler definition
+ * Handler definition options.
+ * Extensible for future features (inputSchema, middleware, etc.)
  */
-export interface RestHandlerDefinition<
-  TInput extends z.ZodTypeAny,
-  TOutput extends z.ZodTypeAny
-> {
-  /** Handler name (for logging/analytics) */
-  name: string;
-  /** Input validation schema */
-  input: TInput;
-  /** Output validation schema (optional, for documentation) */
-  output?: TOutput;
-  /** Error definitions */
-  errors?: Record<string, { http: number; message?: string }>;
-  /** Handler implementation */
-  handler: (
-    request: z.infer<TInput>,
-    ctx: EnhancedRestContext
-  ) => Promise<z.infer<TOutput>>;
+export interface HandlerDefinition<TConfig = unknown, TInput = unknown, TOutput = unknown> {
+  /**
+   * Execute the handler.
+   * Returns data directly - no need for exitCode/CommandResult wrapper.
+   *
+   * @param ctx - Plugin context with runtime APIs (fs, fetch, env, ui, etc.)
+   * @param input - Request input (body for POST, query for GET, etc.)
+   * @returns Response data (will be serialized as JSON)
+   * @throws Error on failure (will be converted to HTTP 500)
+   */
+  execute(
+    ctx: PluginContextV3<TConfig>,
+    input: TInput
+  ): Promise<TOutput>;
+
+  // Future options (non-breaking additions):
+  // inputSchema?: ZodType<TInput>;
+  // outputSchema?: ZodType<TOutput>;
+  // middleware?: Middleware[];
+  // timeout?: number;
 }
 
 /**
- * REST response (success)
- */
-export interface RestSuccessResponse<T> {
-  ok: true;
-  data?: T;
-}
-
-/**
- * REST response (error)
- */
-export interface RestErrorResponse {
-  ok: false;
-  code: string;
-  message: string;
-  hint?: string;
-  details?: Record<string, unknown>;
-}
-
-/**
- * Define a REST handler with automatic validation and error handling
+ * Define a REST handler
+ *
+ * Creates a handler object compatible with runInProcess() from plugin-runtime.
+ * The handler receives full PluginContextV3 with runtime APIs.
  *
  * @example
  * ```typescript
- * export const handleVerify = defineRestHandler({
- *   name: 'mind:verify',
- *   input: z.object({
- *     cwd: schema.cwd(),
- *   }),
- *   output: z.object({
- *     ok: z.boolean(),
- *     cards: z.array(cardDataSchema),
- *   }),
- *   errors: {
- *     'VERIFY_FAILED': { http: 500, message: 'Verification failed' },
- *   },
- *   async handler(request, ctx) {
- *     const cwd = await ctx.resolveCwd(request.cwd);
- *     const result = await verifyIndexes(cwd);
- *     return { ok: true, cards: [...] };
- *   },
+ * // Simple handler
+ * export default defineHandler({
+ *   async execute(ctx, input: { scope?: string }) {
+ *     const plan = await loadPlan(ctx.cwd);
+ *     return plan;
+ *   }
+ * });
+ *
+ * // With typed query parameters using RestInput
+ * import { defineHandler, type RestInput } from '@kb-labs/sdk';
+ *
+ * export default defineHandler({
+ *   async execute(ctx, input: RestInput<{ workspace?: string }>) {
+ *     const workspace = input.query?.workspace || 'root';
+ *     return { workspace };
+ *   }
+ * });
+ *
+ * // With typed query and body
+ * interface QueryParams {
+ *   workspace?: string;
+ * }
+ *
+ * interface BodyParams {
+ *   name: string;
+ *   description?: string;
+ * }
+ *
+ * export default defineHandler({
+ *   async execute(ctx, input: RestInput<QueryParams, BodyParams>) {
+ *     const workspace = input.query?.workspace || 'root';
+ *     const name = input.body?.name;
+ *     return { workspace, name };
+ *   }
+ * });
+ *
+ * // With typed generics
+ * interface GetPlanInput {
+ *   scope?: string;
+ *   includeHistory?: boolean;
+ * }
+ *
+ * interface ReleasePlan {
+ *   version: string;
+ *   packages: string[];
+ * }
+ *
+ * export default defineHandler<unknown, GetPlanInput, ReleasePlan>({
+ *   async execute(ctx, input) {
+ *     // ctx: PluginContextV3 with runtime.fs, ui, etc.
+ *     // input: GetPlanInput (typed)
+ *     // return: ReleasePlan (typed)
+ *     return await loadPlan(ctx.cwd, input.scope);
+ *   }
+ * });
+ *
+ * // Using runtime APIs
+ * export default defineHandler({
+ *   async execute(ctx, input: { path: string }) {
+ *     // File system access
+ *     const content = await ctx.runtime.fs.readFile(input.path, 'utf-8');
+ *
+ *     // Environment variables
+ *     const apiKey = ctx.runtime.env('API_KEY');
+ *
+ *     // Logging
+ *     ctx.runtime.log('info', 'Processing file', { path: input.path });
+ *
+ *     return { content, hasApiKey: !!apiKey };
+ *   }
  * });
  * ```
  */
-export function defineRestHandler<
-  TInput extends z.ZodTypeAny,
-  TOutput extends z.ZodTypeAny
->(
-  definition: RestHandlerDefinition<TInput, TOutput>
-): (input: unknown, ctx: RestHandlerContext) => Promise<z.infer<TOutput> | RestErrorResponse> {
-  return async (input: unknown, ctx: RestHandlerContext) => {
-    // Create enhanced context with helpers
-    const enhancedCtx = createEnhancedContext(ctx, definition.name);
+export function defineHandler<TConfig = unknown, TInput = unknown, TOutput = unknown>(
+  definition: HandlerDefinition<TConfig, TInput, TOutput>
+): Handler<TConfig, TInput, TOutput> {
+  // Return handler object compatible with runInProcess()
+  // Currently passes through, but this wrapper enables:
+  // - Future input validation via inputSchema
+  // - Future output validation via outputSchema
+  // - Middleware execution
+  // - Logging/tracing hooks
+  // - Error normalization
+  return {
+    execute: async (ctx, input) => {
+      // Future: validate input against schema
+      // if (definition.inputSchema) {
+      //   input = definition.inputSchema.parse(input);
+      // }
 
-    try {
-      // 1. Validate input
-      let validatedInput: z.infer<TInput>;
-      try {
-        validatedInput = definition.input.parse(input);
-      } catch (error: any) {
-        enhancedCtx.log('warn', 'Input validation failed', {
-          handler: definition.name,
-          error: error.message,
-        });
-        return {
-          ok: false,
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid request input',
-          hint: error.message,
-          details: error.errors,
-        } as RestErrorResponse;
-      }
+      // Future: run pre-middleware
+      // for (const mw of definition.middleware ?? []) {
+      //   await mw.before?.(ctx, input);
+      // }
 
-      enhancedCtx.log('debug', 'Handler started', {
-        handler: definition.name,
-        requestId: ctx.requestId,
-      });
+      const result = await definition.execute(ctx, input);
 
-      // 2. Execute handler
-      const result = await definition.handler(validatedInput, enhancedCtx);
+      // Future: validate output against schema
+      // if (definition.outputSchema) {
+      //   definition.outputSchema.parse(result);
+      // }
 
-      // 3. Validate output (optional, for development)
-      if (definition.output && process.env.NODE_ENV !== 'production') {
-        try {
-          definition.output.parse(result);
-        } catch (error: any) {
-          enhancedCtx.log('error', 'Output validation failed (development only)', {
-            handler: definition.name,
-            error: error.message,
-          });
-          // In production, we don't fail on output validation
-          // In development, we log it but still return the result
-        }
-      }
-
-      enhancedCtx.log('debug', 'Handler completed', {
-        handler: definition.name,
-        requestId: ctx.requestId,
-      });
+      // Future: run post-middleware
+      // for (const mw of definition.middleware ?? []) {
+      //   await mw.after?.(ctx, input, result);
+      // }
 
       return result;
-    } catch (error: any) {
-      enhancedCtx.log('error', 'Handler error', {
-        handler: definition.name,
-        error: error.message,
-        stack: error.stack,
-      });
-
-      // Check if error matches defined error codes
-      const errorCode = findErrorCode(error, definition.errors);
-
-      if (errorCode && definition.errors) {
-        const errorDef = definition.errors[errorCode];
-        if (errorDef) {
-          return {
-            ok: false,
-            code: errorCode,
-            message: errorDef.message || error.message,
-            hint: error.hint || 'Check request parameters and permissions',
-          } as RestErrorResponse;
-        }
-      }
-
-      // Generic error
-      return {
-        ok: false,
-        code: 'INTERNAL_ERROR',
-        message: error.message || 'Internal server error',
-        hint: 'An unexpected error occurred',
-      } as RestErrorResponse;
-    }
+    },
   };
-}
-
-/**
- * Create enhanced context with helper methods
- */
-function createEnhancedContext(
-  ctx: RestHandlerContext,
-  handlerName: string
-): EnhancedRestContext {
-  // Logger helper (always available)
-  const log = ctx.runtime?.log || ((level: string, msg: string, meta?: Record<string, unknown>) => {
-    console.log(`[${level}] ${msg}`, meta || '');
-  });
-
-  // Environment helper (always available)
-  const env = ctx.runtime?.env || ((key: string) => process.env[key]);
-
-  // Resolve cwd helper
-  const resolveCwd = async (requestCwd?: string): Promise<string> => {
-    // Priority: request.cwd → env → auto-detect → fallback
-    if (requestCwd) {
-      return requestCwd;
-    }
-
-    // Try environment variable
-    const envCwd = env('KB_LABS_REPO_ROOT');
-    if (envCwd) {
-      return envCwd;
-    }
-
-    // Auto-detect workspace root
-    try {
-      const result = await resolveWorkspaceRoot({ startDir: process.cwd() });
-      return result.rootDir;
-    } catch (error) {
-      log('warn', 'Failed to auto-detect workspace root, using current directory', {
-        handler: handlerName,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      return '.';
-    }
-  };
-
-  return {
-    ...ctx,
-    log,
-    env,
-    resolveCwd,
-  };
-}
-
-/**
- * Find matching error code from error object
- */
-function findErrorCode(
-  error: any,
-  errorDefs?: Record<string, { http: number; message?: string }>
-): string | undefined {
-  if (!errorDefs) return undefined;
-
-  // Check if error has errorCode property
-  if (error.errorCode && errorDefs[error.errorCode]) {
-    return error.errorCode;
-  }
-
-  // Check if error has code property
-  if (error.code && errorDefs[error.code]) {
-    return error.code;
-  }
-
-  // Check if error name matches
-  if (error.name && errorDefs[error.name]) {
-    return error.name;
-  }
-
-  return undefined;
-}
-
-/**
- * Helper for creating CardListData for Studio widgets
- */
-export interface CardData {
-  title: string;
-  content: string;
-  status?: 'ok' | 'warn' | 'error' | 'info';
-}
-
-/**
- * Create card list from card data array
- *
- * @example
- * ```typescript
- * const cards = createCardList([
- *   { title: 'Status', content: 'OK', status: 'ok' },
- *   { title: 'Hint', content: result.hint, status: 'info' },
- * ]);
- * ```
- */
-export function createCardList(cards: CardData[]): CardData[] {
-  return cards.map(card => ({
-    title: card.title,
-    content: card.content,
-    status: card.status || 'info',
-  }));
 }

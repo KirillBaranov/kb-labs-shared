@@ -26,6 +26,10 @@
     "./helpers": {
       "import": "./dist/helpers/index.js",
       "types": "./dist/helpers/index.d.ts"
+    },
+    "./studio": {
+      "import": "./dist/studio/index.js",
+      "types": "./dist/studio/index.d.ts"
     }
   },
   "files": [
@@ -46,11 +50,11 @@
   },
   "dependencies": {
     "@kb-labs/cli-contracts": "link:../../../kb-labs-cli/packages/cli-contracts",
+    "@kb-labs/plugin-contracts": "link:../../../kb-labs-plugin/packages/plugin-contracts",
+    "@kb-labs/studio-contracts": "link:../../../kb-labs-studio/packages/studio-contracts",
     "@kb-labs/core-platform": "link:../../../kb-labs-core/packages/core-platform",
     "@kb-labs/core-resource-broker": "link:../../../kb-labs-core/packages/core-resource-broker",
     "@kb-labs/core-runtime": "link:../../../kb-labs-core/packages/core-runtime",
-    "@kb-labs/core-workspace": "link:../../../kb-labs-core/packages/core-workspace",
-    "@kb-labs/plugin-manifest": "link:../../../kb-labs-plugin/packages/plugin-manifest",
     "@kb-labs/plugin-runtime": "link:../../../kb-labs-plugin/packages/plugin-runtime",
     "@kb-labs/shared-cli-ui": "workspace:*",
     "zod": "^3.23.8"
