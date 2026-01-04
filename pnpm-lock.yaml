@@ -82,15 +82,18 @@ importers:
       '@kb-labs/core-platform':
         specifier: link:../../../kb-labs-core/packages/core-platform
         version: link:../../../kb-labs-core/packages/core-platform
+      '@kb-labs/core-resource-broker':
+        specifier: link:../../../kb-labs-core/packages/core-resource-broker
+        version: link:../../../kb-labs-core/packages/core-resource-broker
       '@kb-labs/core-runtime':
         specifier: link:../../../kb-labs-core/packages/core-runtime
         version: link:../../../kb-labs-core/packages/core-runtime
       '@kb-labs/core-workspace':
         specifier: link:../../../kb-labs-core/packages/core-workspace
         version: link:../../../kb-labs-core/packages/core-workspace
-      '@kb-labs/plugin-manifest':
-        specifier: link:../../../kb-labs-plugin/packages/plugin-manifest
-        version: link:../../../kb-labs-plugin/packages/plugin-manifest
+      '@kb-labs/plugin-contracts':
+        specifier: link:../../../kb-labs-plugin/packages/plugin-contracts
+        version: link:../../../kb-labs-plugin/packages/plugin-contracts
       '@kb-labs/plugin-runtime':
         specifier: link:../../../kb-labs-plugin/packages/plugin-runtime
         version: link:../../../kb-labs-plugin/packages/plugin-runtime

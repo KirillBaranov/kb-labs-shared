@@ -27,11 +27,11 @@
       "@kb-labs/core-runtime/*": [
         "../kb-labs-core/packages/core-runtime/src/*"
       ],
-      "@kb-labs/core-workspace": [
-        "../kb-labs-core/packages/core-workspace/src/index.ts"
+      "@kb-labs/plugin-contracts": [
+        "../kb-labs-plugin/packages/plugin-contracts/src/index.ts"
       ],
-      "@kb-labs/core-workspace/*": [
-        "../kb-labs-core/packages/core-workspace/src/*"
+      "@kb-labs/plugin-contracts/*": [
+        "../kb-labs-plugin/packages/plugin-contracts/src/*"
       ],
       "@kb-labs/plugin-runtime": [
         "../kb-labs-plugin/packages/plugin-runtime/src/index.ts"
@@ -44,6 +44,12 @@
       ],
       "@kb-labs/shared-cli-ui/*": [
         "packages/shared-cli-ui/src/*"
+      ],
+      "@kb-labs/studio-contracts": [
+        "../kb-labs-studio/packages/studio-contracts/src/index.ts"
+      ],
+      "@kb-labs/studio-contracts/*": [
+        "../kb-labs-studio/packages/studio-contracts/src/*"
       ]
     }
   }
