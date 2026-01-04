@@ -1,0 +1,36 @@
+{
+  "name": "@kb-labs/perm-presets",
+  "version": "0.1.1",
+  "description": "Composable permission presets for KB Labs plugins",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@kb-labs/devkit": "workspace:*",
+    "typescript": "^5.0.0",
+    "tsup": "^8.0.0",
+    "rimraf": "^5.0.0",
+    "vitest": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
