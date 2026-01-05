@@ -87,6 +87,15 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
     if (Object.keys(result.network).length === 0) delete result.network;
   }
 
+  // Merge shell
+  if (base.shell || next.shell) {
+    result.shell = {
+      allow: mergeArrays(base.shell?.allow, next.shell?.allow),
+    };
+    if (result.shell.allow === undefined) delete result.shell.allow;
+    if (Object.keys(result.shell).length === 0) delete result.shell;
+  }
+
   // Merge platform
   result.platform = mergePlatformPermissions(base.platform, next.platform);
 
@@ -135,13 +144,17 @@ function toRuntimeFormat(spec: PermissionSpec): RuntimePermissionSpec {
     if (Object.keys(result.fs).length === 0) delete result.fs;
   }
 
-  // env, network, platform, quotas pass through unchanged
+  // env, network, shell, platform, quotas pass through unchanged
   if (spec.env) {
     result.env = { ...spec.env };
   }
 
   if (spec.network) {
     result.network = { ...spec.network };
+  }
+
+  if (spec.shell) {
+    result.shell = { ...spec.shell };
   }
 
   if (spec.platform) {
@@ -192,6 +205,13 @@ export function combine(): PresetBuilder {
     withNetwork(network: PermissionSpec['network']): PresetBuilder {
       if (network) {
         accumulated = mergeSpecs(accumulated, { network });
+      }
+      return builder;
+    },
+
+    withShell(shell: PermissionSpec['shell']): PresetBuilder {
+      if (shell) {
+        accumulated = mergeSpecs(accumulated, { shell });
       }
       return builder;
     },

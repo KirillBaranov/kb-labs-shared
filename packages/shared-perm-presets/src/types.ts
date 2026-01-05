@@ -42,6 +42,10 @@ export interface PermissionSpec {
   };
   /** Platform service permissions */
   platform?: PlatformPermissions;
+  /** Shell execution permissions */
+  shell?: {
+    allow?: string[];
+  };
   /** Resource quotas */
   quotas?: {
     timeoutMs?: number;
@@ -71,6 +75,10 @@ export interface RuntimePermissionSpec {
   };
   /** Platform service permissions */
   platform?: PlatformPermissions;
+  /** Shell execution permissions */
+  shell?: {
+    allow?: string[];
+  };
   /** Resource quotas */
   quotas?: {
     timeoutMs?: number;
@@ -105,6 +113,8 @@ export interface PresetBuilder {
   withNetwork(network: PermissionSpec['network']): PresetBuilder;
   /** Add platform service permissions */
   withPlatform(platform: PlatformPermissions): PresetBuilder;
+  /** Add shell execution permissions */
+  withShell(shell: PermissionSpec['shell']): PresetBuilder;
   /** Add quotas */
   withQuotas(quotas: PermissionSpec['quotas']): PresetBuilder;
   /** Build the final permission spec (converts to runtime format) */
