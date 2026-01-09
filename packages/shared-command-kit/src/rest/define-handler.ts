@@ -21,11 +21,12 @@ import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
 
 /**
  * REST input structure from route-mounter.
- * Query params and body are separated to avoid conflicts.
+ * Query params, body, and route params are separated to avoid conflicts.
  */
-export interface RestInput<TQuery = unknown, TBody = unknown> {
+export interface RestInput<TQuery = unknown, TBody = unknown, TParams = unknown> {
   query?: TQuery;
   body?: TBody;
+  params?: TParams;
 }
 
 /**
