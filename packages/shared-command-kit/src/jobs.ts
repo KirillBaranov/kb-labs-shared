@@ -115,16 +115,16 @@ export function defineJob<
     config: { ...config, handler: '' }, // handler path will be set in toManifest()
     handler,
     toManifest(handlerPath: string): JobDecl {
+      // JobDecl now extends CronDecl, which has job.type instead of handler
       return {
         id: config.id,
-        handler: handlerPath,
         schedule: config.schedule,
+        job: {
+          type: config.id, // Use job id as type
+          payload: {}, // Empty payload by default
+        },
         describe: config.describe,
         enabled: config.enabled,
-        priority: config.priority,
-        timeout: config.timeout,
-        retries: config.retries,
-        tags: config.tags,
         permissions: definition.permissions,
       };
     },
