@@ -33,9 +33,10 @@ export type { PluginContextV3 } from './context';
 export { useConfig } from './use-config';
 
 // Core services
-export { useLogger, useLoggerWithContext } from './use-logger';
-export { useLLM, isLLMAvailable } from './use-llm';
-export { useEmbeddings, isEmbeddingsAvailable } from './use-embeddings';
-export { useVectorStore, isVectorStoreAvailable } from './use-vector-store';
-export { useAnalytics, trackAnalyticsEvent } from './use-analytics';
-export { useStorage } from './use-storage';
+export { useLogger, useLoggerWithContext } from './use-logger.js';
+export { useLLM, isLLMAvailable, getLLMTier, type LLMTier, type UseLLMOptions } from './use-llm.js';
+export { useEmbeddings, isEmbeddingsAvailable } from './use-embeddings.js';
+export { useVectorStore, isVectorStoreAvailable } from './use-vector-store.js';
+export { useAnalytics, trackAnalyticsEvent } from './use-analytics.js';
+export { useStorage } from './use-storage.js';
+export { useCache, isCacheAvailable } from './use-cache.js';

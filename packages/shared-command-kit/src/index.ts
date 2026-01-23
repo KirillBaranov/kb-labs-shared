@@ -25,6 +25,14 @@ export * from './lifecycle/index';
 export * from './jobs';
 export type { CommandOutput } from '@kb-labs/shared-cli-ui';
 
+// Plugin handler definitions (CLI, REST, Webhooks, WebSockets, Workflows)
+export * from './define-command';
+export * from './define-route';
+export * from './define-webhook';
+export * from './define-websocket';
+export * from './define-action';
+export * from './ws-types';
+
 /**
  * Command execution status
  */
