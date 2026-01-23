@@ -1,4 +1,4 @@
-import type { PermissionSpec, PermissionPreset, PresetBuilder, RuntimePermissionSpec } from './types';
+import type { PermissionSpec, PermissionPreset, PresetBuilder, RuntimePermissionSpec, PlatformPermissions } from './types';
 
 /**
  * Merge two string arrays, removing duplicates
@@ -226,6 +226,24 @@ export function combine(): PresetBuilder {
     withQuotas(quotas: PermissionSpec['quotas']): PresetBuilder {
       if (quotas) {
         accumulated = mergeSpecs(accumulated, { quotas });
+      }
+      return builder;
+    },
+
+    withStorage(storage: PlatformPermissions['storage']): PresetBuilder {
+      if (storage !== undefined) {
+        accumulated = mergeSpecs(accumulated, {
+          platform: { storage },
+        });
+      }
+      return builder;
+    },
+
+    withDatabase(database: PlatformPermissions['database']): PresetBuilder {
+      if (database !== undefined) {
+        accumulated = mergeSpecs(accumulated, {
+          platform: { database },
+        });
       }
       return builder;
     },
