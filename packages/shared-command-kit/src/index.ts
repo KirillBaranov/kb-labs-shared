@@ -4,8 +4,7 @@
  */
 
 import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
-import { defineFlags, validateFlags, type FlagSchemaDefinition, type InferFlags, FlagValidationError } from './flags/index';
-import { formatError } from './errors/index';
+import type { FlagSchemaDefinition, InferFlags } from './flags/index';
 
 // Re-exports
 export * from './flags/index';
@@ -134,11 +133,11 @@ export type CommandResult = {
  * ```
  */
 export type CommandHandler<
-  TConfig = any,
+  _TConfig = any,
   TFlags extends Record<string, unknown> = Record<string, unknown>,
   TResult extends CommandResult = CommandResult,
   TArgv extends readonly string[] = string[],
-  TEnv = Record<string, string | undefined>
+  _TEnv = Record<string, string | undefined>
 > = (
   ctx: PluginContextV3,
   argv: TArgv,
@@ -173,11 +172,11 @@ export type CommandHandler<
  * ```
  */
 export type CommandFormatter<
-  TConfig = any,
+  _TConfig = any,
   TFlags extends Record<string, unknown> = Record<string, unknown>,
   TResult extends CommandResult = CommandResult,
   TArgv extends readonly string[] = string[],
-  TEnv = Record<string, string | undefined>
+  _TEnv = Record<string, string | undefined>
 > = (
   result: TResult,
   ctx: PluginContextV3,
@@ -408,161 +407,4 @@ export interface CommandConfig<
  * // Low-level UI: table(), keyValue(), list(), box(), sideBox()
  * ```
  */
-export function defineCommand<
-  TFlags extends FlagSchemaDefinition = FlagSchemaDefinition,
-  TResult extends CommandResult = CommandResult,
-  TConfig = any,
-  TArgv extends readonly string[] = string[],
-  TEnv = Record<string, string | undefined>
->(
-  config: CommandConfig<TFlags, TResult, TConfig, TArgv, TEnv>
-): (ctx: PluginContextV3, argv: string[], rawFlags: Record<string, unknown>) => Promise<number> {
-  const { name, flags, analytics, handler, formatter, env: envSchema } = config;
-  const flagSchema = defineFlags(flags);
-
-  return async function commandHandler(
-    ctx: PluginContextV3,
-    argv: string[],
-    rawFlags: Record<string, unknown>
-  ): Promise<number> {
-    const jsonMode = Boolean(rawFlags.json);
-
-    // Validate flags
-    let validatedFlags: InferFlags<TFlags>;
-    try {
-      validatedFlags = await validateFlags(rawFlags, flagSchema);
-    } catch (error) {
-      // Enhance validation error with command name
-      if (error instanceof FlagValidationError && name && !error.commandName) {
-        (error as { commandName?: string }).commandName = name;
-      }
-
-      // Show stack trace only in debug mode
-      const showStack = Boolean(rawFlags.debug);
-      const formatted = formatError(error, { showStack, jsonMode });
-
-      if (jsonMode) {
-        ctx.ui?.json(formatted.json);
-      } else {
-        ctx.ui?.error(formatted.message);
-      }
-
-      // Return specific exit code for validation errors
-      return 3; // EXIT_CODES.INVALID_FLAGS
-    }
-
-    // Validate environment variables if schema provided
-    const validatedEnv: TEnv = process.env as TEnv;
-    if (envSchema) {
-      const missingEnvVars: string[] = [];
-      for (const [key, schema] of Object.entries(envSchema)) {
-        if (schema.required && !process.env[key]) {
-          missingEnvVars.push(key);
-        }
-      }
-
-      if (missingEnvVars.length > 0) {
-        const errorMessage = `Missing required environment variables: ${missingEnvVars.join(', ')}`;
-        const formatted = formatError(new Error(errorMessage), { jsonMode });
-
-        if (jsonMode) {
-          ctx.ui?.json(formatted.json);
-        } else {
-          ctx.ui?.error(formatted.message);
-        }
-
-        return 3; // EXIT_CODES.INVALID_FLAGS
-      }
-    }
-
-    // Use pure PluginContextV3 - no enhancement needed
-
-    // Run command
-    const runCommand = async (): Promise<number> => {
-      try {
-        // Log start
-        if (name) {
-          ctx.platform?.logger?.info(`Command started: ${name}`, {
-            flags: analytics?.includeFlags ? validatedFlags : undefined,
-          });
-        }
-
-        // Call user handler with pure PluginContextV3
-        const result = await handler(ctx, argv as unknown as TArgv, validatedFlags);
-
-        // Handle result
-        let exitCode = 0;
-        let resultData: TResult = { ok: true } as TResult;
-
-        if (typeof result === 'number') {
-          exitCode = result;
-          resultData = {
-            ok: result === 0,
-            status: result === 0 ? 'success' : 'failed',
-          } as TResult;
-        } else if (result && typeof result === 'object' && 'ok' in result) {
-          resultData = result as TResult;
-          // Ensure status is set if not provided
-          if (!resultData.status) {
-            resultData.status = resultData.ok ? 'success' : (resultData.error ? 'error' : 'failed');
-          }
-          exitCode = resultData.ok ? 0 : 1;
-        } else if (result && typeof result === 'object') {
-          // Result is an object but doesn't have 'ok' field - preserve all fields and add 'ok'
-          resultData = { ...(result as Record<string, unknown>), ok: true, status: 'success' } as TResult;
-        } else {
-          resultData = { ok: true, status: 'success' } as TResult;
-        }
-
-        // Log completion
-        if (name) {
-          ctx.platform?.logger?.info(`Command completed: ${name}`, {
-            ok: resultData.ok,
-          });
-        }
-
-        // Format output
-            if (formatter) {
-              formatter(resultData, ctx, validatedFlags, argv as unknown as TArgv);
-            } else {
-          // Default formatting
-          if (jsonMode) {
-            ctx.ui?.json(resultData);
-          } else {
-            if (resultData.ok) {
-              ctx.ui?.write(`✓ ${name || 'Command'} completed`);
-            } else {
-              ctx.ui?.error(`✗ ${name || 'Command'} failed`);
-            }
-          }
-        }
-
-        return exitCode;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-
-        // Log error
-        if (name) {
-          ctx.platform?.logger?.error(`Command failed: ${name}`, errorObj);
-        }
-
-        // Format error
-        const formatted = formatError(error, {
-          jsonMode,
-        });
-
-        if (jsonMode) {
-          ctx.ui?.json(formatted.json);
-        } else {
-          ctx.ui?.error(formatted.message);
-        }
-
-        return 1;
-      }
-    };
-
-    return await runCommand();
-  };
-}
 

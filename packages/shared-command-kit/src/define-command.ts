@@ -12,7 +12,7 @@ export interface CLIInput<TFlags = unknown> {
   argv: string[];
 }
 
-export interface CommandHandler<TConfig = unknown, TInput = unknown, TResult = unknown> {
+export interface CommandHandlerV3<TConfig = unknown, TInput = unknown, TResult = unknown> {
   /**
    * Execute the command
    */
@@ -41,7 +41,7 @@ export interface CommandDefinition<TConfig = unknown, TInput = unknown, TResult 
   /**
    * Handler implementation
    */
-  handler: CommandHandler<TConfig, TInput, TResult>;
+  handler: CommandHandlerV3<TConfig, TInput, TResult>;
 
   /**
    * Optional input schema validation (future: use Zod/JSON Schema)
@@ -86,9 +86,9 @@ export interface CommandDefinition<TConfig = unknown, TInput = unknown, TResult 
  */
 export function defineCommand<TConfig = unknown, TInput = unknown, TResult = unknown>(
   definition: CommandDefinition<TConfig, TInput, TResult>
-): CommandHandler<TConfig, TInput, TResult> {
-  // Validate host type at runtime
-  const wrappedHandler: CommandHandler<TConfig, TInput, TResult> = {
+): CommandHandlerV3<TConfig, TInput, TResult> {
+  // Return the handler directly with host validation wrapper
+  return {
     execute: (context, input) => {
       // Ensure we're running in CLI or workflow host
       if (context.host !== 'cli' && context.host !== 'workflow') {
@@ -102,9 +102,7 @@ export function defineCommand<TConfig = unknown, TInput = unknown, TResult = unk
     },
 
     cleanup: definition.handler.cleanup,
-  };
-
-  return wrappedHandler;
+  } as CommandHandlerV3<TConfig, TInput, TResult>;
 }
 
 /**

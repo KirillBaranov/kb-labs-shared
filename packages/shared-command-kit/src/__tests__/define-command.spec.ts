@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defineCommand } from '../index';
-import type { CliContext } from '@kb-labs/cli-contracts';
 
 describe('defineCommand', () => {
   let mockCtx: any; // PluginContextV3
@@ -61,205 +60,235 @@ describe('defineCommand', () => {
     };
   });
 
-  it('should validate flags and call handler', async () => {
-    const handler = vi.fn().mockResolvedValue({ ok: true, result: 'success' });
+  it('should call handler with correct input (V3 API)', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 0, ok: true, result: 'success' });
 
     const command = defineCommand({
-      name: 'test',
-      flags: {
-        name: { type: 'string', required: true },
-        verbose: { type: 'boolean', default: false },
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
       },
-      handler,
     });
 
-    const result = await command(mockCtx, [], { name: 'test', verbose: true });
+    const result = await command.execute(mockCtx, { flags: { name: 'test' }, argv: [] });
 
-    expect(result).toBe(0);
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
     expect(handler).toHaveBeenCalledOnce();
-    expect(handler.mock.calls[0]?.[2]).toEqual({ name: 'test', verbose: true });
+    expect(handler.mock.calls[0]?.[0]).toBe(mockCtx);
+    expect(handler.mock.calls[0]?.[1]).toEqual({ flags: { name: 'test' }, argv: [] });
   });
 
-  it('should return error code when validation fails', async () => {
+  it('should enforce CLI host restriction', async () => {
     const handler = vi.fn();
 
     const command = defineCommand({
-      name: 'test',
-      flags: {
-        name: { type: 'string', required: true },
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
       },
-      handler,
     });
 
-    const result = await command(mockCtx, [], {});
+    // Change host to REST
+    mockCtx.host = 'rest';
 
-    expect(result).toBe(3); // EXIT_CODES.INVALID_FLAGS
+    try {
+      await command.execute(mockCtx, { flags: {}, argv: [] });
+      expect.fail('Should have thrown an error');
+    } catch (error: any) {
+      expect(error.message).toContain('can only run in CLI or workflow host');
+    }
+
     expect(handler).not.toHaveBeenCalled();
-    // Error is displayed via ctx.ui?.error(), not mockOutput.error
+  });
+
+  it('should allow workflow host', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 0, ok: true });
+
+    const command = defineCommand({
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
+    });
+
+    // Change host to workflow
+    mockCtx.host = 'workflow';
+
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(handler).toHaveBeenCalledOnce();
   });
 
   it('should handle handler returning number', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 0, ok: true });
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => 0,
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
     });
 
-    const result = await command(mockCtx, [], {});
-    expect(result).toBe(0);
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
   });
 
   it('should handle handler returning object with ok', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 0, ok: true, data: 'test' });
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => ({ ok: true, data: 'test' }),
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
     });
 
-    const result = await command(mockCtx, [], {});
-    expect(result).toBe(0);
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
   });
 
   it('should handle errors in handler', async () => {
+    const handler = vi.fn().mockRejectedValue(new Error('Handler error'));
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => {
-        throw new Error('Handler error');
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
       },
     });
 
-    const result = await command(mockCtx, [], {});
-    expect(result).toBe(1);
-    expect(mockUI.error).toHaveBeenCalled(); // Now errors go through ctx.ui.error
+    await expect(
+      command.execute(mockCtx, { flags: {}, argv: [] })
+    ).rejects.toThrow('Handler error');
   });
 
-  // Removed: tracker is no longer added to context (pure PluginContextV3)
-
-  it('should use custom formatter when provided', async () => {
-    const formatter = vi.fn();
+  it('should call cleanup if provided', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 0, ok: true });
+    const cleanup = vi.fn().mockResolvedValue(undefined);
 
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => ({ ok: true }),
-      formatter,
-    });
-
-    await command(mockCtx, [], {});
-
-    expect(formatter).toHaveBeenCalled();
-    const [result, ctx] = formatter.mock.calls[0] || [];
-    expect(result.ok).toBe(true);
-    expect(ctx).toBeDefined(); // Pure PluginContextV3, no tracker
-  });
-
-  it('should output JSON when json flag is set', async () => {
-    const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => ({ ok: true }),
-    });
-
-    await command(mockCtx, [], { json: true });
-
-    expect(mockUI.json).toHaveBeenCalled(); // Now JSON goes through ctx.ui.json
-    const jsonCall = mockUI.json.mock.calls[0]?.[0];
-    expect(jsonCall.ok).toBe(true);
-    // Removed: timingMs is no longer added (no tracker)
-  });
-
-  it('should handle analytics integration', async () => {
-    // Analytics config is now legacy - just verify command works with it
-    const command = defineCommand({
-      name: 'test',
-      flags: {},
-      analytics: {
-        startEvent: 'TEST_STARTED',
-        finishEvent: 'TEST_FINISHED',
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+        cleanup,
       },
-      handler: async () => ({ ok: true }),
     });
 
-    const result = await command(mockCtx, [], {});
+    await command.execute(mockCtx, { flags: {}, argv: [] });
 
-    // Command should complete successfully (analytics is legacy, may be no-op)
-    expect(result).toBe(0);
+    // Cleanup should be available
+    expect(command.cleanup).toBe(cleanup);
+
+    // Call cleanup manually
+    await command.cleanup!();
+    expect(cleanup).toHaveBeenCalledOnce();
   });
 
   it('should handle handler returning exit code 2', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 2, ok: false });
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => 2,
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
     });
 
-    const result = await command(mockCtx, [], {});
-    expect(result).toBe(2);
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(2);
+    expect(result.ok).toBe(false);
   });
 
   it('should handle handler returning object with ok: false', async () => {
+    const handler = vi.fn().mockResolvedValue({ exitCode: 1, ok: false });
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => ({ ok: false, error: 'test error' }),
-    });
-
-    const result = await command(mockCtx, [], {});
-    expect(result).toBe(1);
-  });
-
-  it('should log command start and completion', async () => {
-    const command = defineCommand({
-      name: 'test-command',
-      flags: {},
-      handler: async () => ({ ok: true }),
-    });
-
-    await command(mockCtx, [], {});
-
-    // Logger is now in ctx.platform.logger
-    expect(mockLogger.info).toHaveBeenCalled();
-    const calls = mockLogger.info.mock.calls;
-    const hasStartLog = calls.some((call: any[]) => call[0]?.includes('started'));
-    const hasCompleteLog = calls.some((call: any[]) => call[0]?.includes('completed'));
-    expect(hasStartLog || hasCompleteLog).toBe(true);
-  });
-
-  // Removed: tracker.checkpoint() is no longer available (pure PluginContextV3)
-
-  it('should handle errors with proper formatting', async () => {
-    const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => {
-        throw new Error('Test error');
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
       },
     });
 
-    const result = await command(mockCtx, [], {});
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
-    expect(result).toBe(1);
-    expect(mockUI.error).toHaveBeenCalled(); // Errors through ctx.ui.error
-    expect(mockLogger.error).toHaveBeenCalled(); // Logger through ctx.platform.logger
+    expect(result.exitCode).toBe(1);
+    expect(result.ok).toBe(false);
   });
 
-  it('should handle errors in JSON mode', async () => {
+  it('should pass through custom result fields', async () => {
+    const handler = vi.fn().mockResolvedValue({
+      exitCode: 0,
+      ok: true,
+      customField: 'custom-value',
+      data: { nested: 'data' },
+    });
+
     const command = defineCommand({
-      name: 'test',
-      flags: {},
-      handler: async () => {
-        throw new Error('Test error');
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
       },
     });
 
-    const result = await command(mockCtx, [], { json: true });
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] }) as any;
 
-    expect(result).toBe(1);
-    expect(mockUI.json).toHaveBeenCalled(); // JSON through ctx.ui.json
-    const jsonCall = mockUI.json.mock.calls[0]?.[0];
-    expect(jsonCall.ok).toBe(false);
-    expect(jsonCall.error).toBe('Test error');
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
+    expect(result.customField).toBe('custom-value');
+    expect(result.data).toEqual({ nested: 'data' });
+  });
+
+  it('should work with async handlers', async () => {
+    const handler = vi.fn(async () => {
+      await new Promise<void>(resolve => setTimeout(resolve, 10));
+      return { exitCode: 0, ok: true };
+    });
+
+    const command = defineCommand({
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
+    });
+
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should work with sync handlers', async () => {
+    const handler = vi.fn(() => ({ exitCode: 0, ok: true }));
+
+    const command = defineCommand({
+      id: 'test:command',
+      description: 'Test command',
+      handler: {
+        execute: handler,
+      },
+    });
+
+    const result = await command.execute(mockCtx, { flags: {}, argv: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.ok).toBe(true);
   });
 });
-

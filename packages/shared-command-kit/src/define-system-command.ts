@@ -4,12 +4,15 @@
  */
 
 import {
-  defineCommand,
   type CommandResult,
   type FlagSchemaDefinition,
   type InferFlags,
+  defineFlags,
+  validateFlags,
+  FlagValidationError,
 } from './index';
 import type { PluginContextV3 } from '@kb-labs/plugin-contracts';
+import { formatError } from './errors/index';
 
 /**
  * Flag definition for Command interface
@@ -244,17 +247,9 @@ export function defineSystemCommand<
 >(
   config: SystemCommandConfig<TFlags, TResult, TArgv>
 ): Command {
-  const { name, description, longDescription, category, aliases, examples, flags, analytics, handler, formatter } = config;
+  const { name, description, longDescription, category, aliases, examples, flags, handler, formatter } = config;
 
-  // Create handler using defineCommand (shared base)
-  const wrappedHandler = defineCommand<TFlags, TResult, any, TArgv>({
-    name,
-    flags: flags || ({} as TFlags),
-    analytics,
-    handler,
-    formatter,
-  });
-
+  // Return command with direct handler (no wrapping needed - system commands don't use V3 defineCommand)
   return {
     name,
     describe: description,
@@ -263,7 +258,77 @@ export function defineSystemCommand<
     aliases: aliases || [],
     flags: flags ? convertFlagSchema(flags) : [],
     examples: examples || [],
-    run: wrappedHandler,
+    run: async (ctx: PluginContextV3, argv: string[], rawFlags: Record<string, unknown>) => {
+      const jsonMode = Boolean(rawFlags.json);
+
+      // Log command start
+      ctx.platform?.logger?.info?.(`Command ${name} started`);
+
+      // Validate flags only if schema is defined
+      let validatedFlags: InferFlags<TFlags>;
+
+      if (flags) {
+        const flagSchema = defineFlags(flags);
+        try {
+          validatedFlags = await validateFlags(rawFlags, flagSchema) as InferFlags<TFlags>;
+        } catch (error) {
+          // Enhance validation error with command name
+          if (error instanceof FlagValidationError && name && !error.commandName) {
+            (error as { commandName?: string }).commandName = name;
+          }
+
+          // Show stack trace only in debug mode
+          const showStack = Boolean(rawFlags.debug);
+          const formatted = formatError(error, { showStack, jsonMode });
+
+          if (jsonMode) {
+            ctx.ui?.json(formatted.json);
+          } else {
+            ctx.ui?.error(formatted.message);
+          }
+
+          // Return specific exit code for validation errors
+          return 3; // EXIT_CODES.INVALID_FLAGS
+        }
+      } else {
+        // No schema defined - pass raw flags as-is
+        validatedFlags = rawFlags as InferFlags<TFlags>;
+      }
+
+      // Call handler with error handling
+      let result: number | TResult;
+      try {
+        result = await handler(ctx, argv as unknown as TArgv, validatedFlags);
+      } catch (error) {
+        // Log error to platform logger
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        ctx.platform?.logger?.error?.(`Command ${name} failed: ${errorMessage}`);
+
+        // Display error to user
+        if (jsonMode) {
+          ctx.ui?.json({ ok: false, error: errorMessage });
+        } else {
+          ctx.ui?.error(errorMessage);
+        }
+
+        // Return error exit code
+        return 1;
+      }
+
+      // Call formatter if provided and result is not a number
+      if (formatter && typeof result !== 'number') {
+        formatter(result as TResult, ctx, validatedFlags, argv as unknown as TArgv);
+      }
+
+      // Log command completion
+      ctx.platform?.logger?.info?.(`Command ${name} completed`);
+
+      // Convert result to exit code
+      if (typeof result === 'number') {
+        return result;
+      }
+      return result.ok ? 0 : 1;
+    },
   };
 }
 
