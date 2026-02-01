@@ -4,7 +4,7 @@ import type { PermissionSpec, PermissionPreset, PresetBuilder, RuntimePermission
  * Merge two string arrays, removing duplicates
  */
 function mergeArrays(a?: string[], b?: string[]): string[] | undefined {
-  if (!a && !b) return undefined;
+  if (!a && !b) {return undefined;}
   const set = new Set([...(a ?? []), ...(b ?? [])]);
   return set.size > 0 ? [...set] : undefined;
 }
@@ -16,9 +16,9 @@ function mergePlatformPermissions(
   base?: PermissionSpec['platform'],
   next?: PermissionSpec['platform']
 ): PermissionSpec['platform'] | undefined {
-  if (!base && !next) return undefined;
-  if (!base) return next;
-  if (!next) return base;
+  if (!base && !next) {return undefined;}
+  if (!base) {return next;}
+  if (!next) {return base;}
 
   const result: PermissionSpec['platform'] = {};
 
@@ -64,9 +64,9 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
       allow: mergeArrays(base.fs?.allow, next.fs?.allow),
     };
     // Clean up undefined fields
-    if (result.fs.mode === undefined) delete result.fs.mode;
-    if (result.fs.allow === undefined) delete result.fs.allow;
-    if (Object.keys(result.fs).length === 0) delete result.fs;
+    if (result.fs.mode === undefined) {delete result.fs.mode;}
+    if (result.fs.allow === undefined) {delete result.fs.allow;}
+    if (Object.keys(result.fs).length === 0) {delete result.fs;}
   }
 
   // Merge env
@@ -74,8 +74,8 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
     result.env = {
       read: mergeArrays(base.env?.read, next.env?.read),
     };
-    if (result.env.read === undefined) delete result.env.read;
-    if (Object.keys(result.env).length === 0) delete result.env;
+    if (result.env.read === undefined) {delete result.env.read;}
+    if (Object.keys(result.env).length === 0) {delete result.env;}
   }
 
   // Merge network
@@ -83,8 +83,8 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
     result.network = {
       fetch: mergeArrays(base.network?.fetch, next.network?.fetch),
     };
-    if (result.network.fetch === undefined) delete result.network.fetch;
-    if (Object.keys(result.network).length === 0) delete result.network;
+    if (result.network.fetch === undefined) {delete result.network.fetch;}
+    if (Object.keys(result.network).length === 0) {delete result.network;}
   }
 
   // Merge shell
@@ -92,8 +92,8 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
     result.shell = {
       allow: mergeArrays(base.shell?.allow, next.shell?.allow),
     };
-    if (result.shell.allow === undefined) delete result.shell.allow;
-    if (Object.keys(result.shell).length === 0) delete result.shell;
+    if (result.shell.allow === undefined) {delete result.shell.allow;}
+    if (Object.keys(result.shell).length === 0) {delete result.shell;}
   }
 
   // Merge platform
@@ -106,10 +106,10 @@ function mergeSpecs(base: PermissionSpec, next: PermissionSpec): PermissionSpec 
       memoryMb: next.quotas?.memoryMb ?? base.quotas?.memoryMb,
       cpuMs: next.quotas?.cpuMs ?? base.quotas?.cpuMs,
     };
-    if (result.quotas.timeoutMs === undefined) delete result.quotas.timeoutMs;
-    if (result.quotas.memoryMb === undefined) delete result.quotas.memoryMb;
-    if (result.quotas.cpuMs === undefined) delete result.quotas.cpuMs;
-    if (Object.keys(result.quotas).length === 0) delete result.quotas;
+    if (result.quotas.timeoutMs === undefined) {delete result.quotas.timeoutMs;}
+    if (result.quotas.memoryMb === undefined) {delete result.quotas.memoryMb;}
+    if (result.quotas.cpuMs === undefined) {delete result.quotas.cpuMs;}
+    if (Object.keys(result.quotas).length === 0) {delete result.quotas;}
   }
 
   return result;
@@ -141,7 +141,7 @@ function toRuntimeFormat(spec: PermissionSpec): RuntimePermissionSpec {
       }
     }
 
-    if (Object.keys(result.fs).length === 0) delete result.fs;
+    if (Object.keys(result.fs).length === 0) {delete result.fs;}
   }
 
   // env, network, shell, platform, quotas pass through unchanged
