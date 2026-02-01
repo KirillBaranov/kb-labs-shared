@@ -304,7 +304,7 @@ async function cleanupWorkspace(
   config: DestroyHandlerDefinition['workspace'],
   log: (level: 'error' | 'info' | 'debug' | 'warn', msg: string, meta?: Record<string, unknown>) => void
 ): Promise<void> {
-  if (!config) return;
+  if (!config) {return;}
 
   // Remove files first
   if (config.files) {

@@ -32,7 +32,7 @@ export function combine(...permissionObjects: Partial<PermissionsConfig>[]): Per
   const result: Partial<PermissionsConfig> = {};
 
   for (const perms of permissionObjects) {
-    if (!perms) continue;
+    if (!perms) {continue;}
 
     // Merge fs permissions
     if (perms.fs) {
