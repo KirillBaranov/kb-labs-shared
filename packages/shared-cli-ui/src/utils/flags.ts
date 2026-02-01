@@ -174,8 +174,8 @@ export function parseBoolean(value: unknown, flagName: string): boolean {
 
   if (typeof value === 'string') {
     const lower = value.toLowerCase();
-    if (lower === 'true' || lower === '1' || lower === 'yes') return true;
-    if (lower === 'false' || lower === '0' || lower === 'no') return false;
+    if (lower === 'true' || lower === '1' || lower === 'yes') {return true;}
+    if (lower === 'false' || lower === '0' || lower === 'no') {return false;}
   }
 
   throw new Error(

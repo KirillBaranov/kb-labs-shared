@@ -1,7 +1,7 @@
 // tsup.config.ts
 import { defineConfig } from "tsup";
 import dualPreset from "@kb-labs/devkit/tsup/dual.js";
-var tsup_config_default = defineConfig({
+const tsup_config_default = defineConfig({
   ...dualPreset,
   entry: {
     index: "src/index.ts",

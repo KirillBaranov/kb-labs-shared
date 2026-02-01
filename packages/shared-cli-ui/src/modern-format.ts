@@ -48,7 +48,7 @@ export function sideBorderBox(options: SideBorderBoxOptions): string {
   // Sections
   for (let i = 0; i < sections.length; i++) {
     const section = sections[i];
-    if (!section) continue;
+    if (!section) {continue;}
 
     // Section header (optional)
     if (section.header) {
@@ -103,7 +103,7 @@ export function sectionHeader(text: string): string {
  */
 export function metricsList(metrics: Record<string, string | number>): string[] {
   const entries = Object.entries(metrics);
-  if (entries.length === 0) return [];
+  if (entries.length === 0) {return [];}
 
   // Find max key length for alignment
   const maxKeyLength = Math.max(
