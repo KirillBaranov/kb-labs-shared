@@ -211,7 +211,7 @@ export function defineWebSocket<TConfig = unknown, TIncoming = unknown, TOutgoin
 ) {
   // Return a unified handler that router can call with WSInput
   return {
-    async execute(context: PluginContextV3<TConfig>, input: WSInput, sender: WSSender): Promise<CommandResult | void> {
+    async execute(context: PluginContextV3<TConfig>, input: WSInput): Promise<CommandResult | void> {
       // Validate host type at runtime
       if (context.host !== 'ws') {
         throw new Error(
@@ -230,18 +230,26 @@ export function defineWebSocket<TConfig = unknown, TIncoming = unknown, TOutgoin
         }
       }
 
-      // Create typed sender wrapper
-      const typedSender = createTypedSender<TOutgoing>(sender);
+      // Get sender from input (passed from channel-mounter)
+      const sender = input.sender;
+      if (!sender && input.event !== 'disconnect') {
+        throw new Error('WebSocket sender not provided in input');
+      }
+
+      // Create typed sender wrapper (only if sender is available)
+      const typedSender = sender ? createTypedSender<TOutgoing>(sender) : undefined;
 
       // Route to appropriate lifecycle handler
       try {
         switch (input.event) {
           case 'connect':
-            await definition.handler.onConnect?.(context, typedSender);
+            if (typedSender) {
+              await definition.handler.onConnect?.(context, typedSender);
+            }
             break;
 
           case 'message':
-            if (input.message) {
+            if (input.message && typedSender && sender) {
               // Validate message structure before processing
               try {
                 validateWSMessage(input.message);
@@ -275,7 +283,7 @@ export function defineWebSocket<TConfig = unknown, TIncoming = unknown, TOutgoin
             break;
 
           case 'error':
-            if (input.error) {
+            if (input.error && typedSender) {
               await definition.handler.onError?.(context, input.error, typedSender);
             }
             break;

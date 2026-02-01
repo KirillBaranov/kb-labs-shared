@@ -66,10 +66,10 @@ describe('defineWebSocket', () => {
         hostContext: { host: 'cli' as const } as any,
       };
 
-      const input: WSInput = { event: 'connect' };
+      const input: WSInput = { event: 'connect', sender: mockSender };
 
       await expect(
-        handler.execute(invalidContext, input, mockSender)
+        handler.execute(invalidContext, input)
       ).rejects.toThrow('can only run in ws host');
     });
 
@@ -89,14 +89,29 @@ describe('defineWebSocket', () => {
         } as WebSocketHostContext,
       };
 
-      const input: WSInput = { event: 'connect' };
+      const input: WSInput = { event: 'connect', sender: mockSender };
 
       await expect(
-        handler.execute(wrongPathContext, input, mockSender)
+        handler.execute(wrongPathContext, input)
       ).rejects.toThrow('expects channel /expected but got /wrong');
     });
 
-    it('should accept valid ws host context', async () => {
+    it('should throw error if sender not provided for connect event', async () => {
+      const handler = defineWebSocket({
+        path: '/test',
+        handler: {
+          async onConnect() {},
+        },
+      });
+
+      const input: WSInput = { event: 'connect' }; // no sender
+
+      await expect(
+        handler.execute(mockContext, input)
+      ).rejects.toThrow('WebSocket sender not provided in input');
+    });
+
+    it('should accept valid ws host context with sender', async () => {
       const onConnect = vi.fn();
 
       const handler = defineWebSocket({
@@ -104,9 +119,9 @@ describe('defineWebSocket', () => {
         handler: { onConnect },
       });
 
-      const input: WSInput = { event: 'connect' };
+      const input: WSInput = { event: 'connect', sender: mockSender };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onConnect).toHaveBeenCalled();
     });
@@ -130,9 +145,10 @@ describe('defineWebSocket', () => {
       const input: WSInput = {
         event: 'message',
         message: validMessage,
+        sender: mockSender,
       };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onMessage).toHaveBeenCalled();
       expect(mockLogger.error).not.toHaveBeenCalled();
@@ -154,9 +170,10 @@ describe('defineWebSocket', () => {
       const input: WSInput = {
         event: 'message',
         message: invalidMessage,
+        sender: mockSender,
       };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onMessage).not.toHaveBeenCalled();
       expect(mockContext.platform.logger.error).toHaveBeenCalled();
@@ -184,9 +201,10 @@ describe('defineWebSocket', () => {
       const input: WSInput = {
         event: 'message',
         message: invalidMessage,
+        sender: mockSender,
       };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onMessage).not.toHaveBeenCalled();
       expect(mockLogger.error).toHaveBeenCalled();
@@ -202,14 +220,14 @@ describe('defineWebSocket', () => {
         handler: { onConnect },
       });
 
-      const input: WSInput = { event: 'connect' };
+      const input: WSInput = { event: 'connect', sender: mockSender };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onConnect).toHaveBeenCalled();
     });
 
-    it('should call onDisconnect handler', async () => {
+    it('should call onDisconnect handler without sender', async () => {
       const onDisconnect = vi.fn();
 
       const handler = defineWebSocket({
@@ -217,13 +235,14 @@ describe('defineWebSocket', () => {
         handler: { onDisconnect },
       });
 
+      // disconnect event doesn't need sender
       const input: WSInput = {
         event: 'disconnect',
         disconnectCode: 1000,
         disconnectReason: 'Normal closure',
       };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(onDisconnect).toHaveBeenCalledWith(mockContext, 1000, 'Normal closure');
     });
@@ -241,9 +260,9 @@ describe('defineWebSocket', () => {
         },
       });
 
-      const input: WSInput = { event: 'connect' };
+      const input: WSInput = { event: 'connect', sender: mockSender };
 
-      await handler.execute(mockContext, input, mockSender);
+      await handler.execute(mockContext, input);
 
       expect(cleanup).toHaveBeenCalled();
     });
@@ -262,9 +281,9 @@ describe('defineWebSocket', () => {
       });
 
       const message = { type: 'test', payload: {}, timestamp: Date.now() };
-      const input: WSInput = { event: 'message', message };
+      const input: WSInput = { event: 'message', message, sender: mockSender };
 
-      await expect(handler.execute(mockContext, input, mockSender)).rejects.toThrow(
+      await expect(handler.execute(mockContext, input)).rejects.toThrow(
         'Handler error'
       );
 
