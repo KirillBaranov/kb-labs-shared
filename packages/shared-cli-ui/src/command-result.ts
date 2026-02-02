@@ -5,7 +5,6 @@
 
 import {
   sideBorderBox,
-  sectionHeader,
   metricsList,
   bulletList,
   type SectionContent,

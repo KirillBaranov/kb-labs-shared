@@ -171,8 +171,6 @@ export function defineHandler<TConfig = unknown, TInput = unknown, TOutput = unk
       //   await mw.before?.(ctx, input);
       // }
 
-      const result = await definition.execute(ctx, input);
-
       // Future: validate output against schema
       // if (definition.outputSchema) {
       //   definition.outputSchema.parse(result);
@@ -183,7 +181,7 @@ export function defineHandler<TConfig = unknown, TInput = unknown, TOutput = unk
       //   await mw.after?.(ctx, input, result);
       // }
 
-      return result;
+      return await definition.execute(ctx, input);
     },
   };
 }

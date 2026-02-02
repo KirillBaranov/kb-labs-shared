@@ -112,13 +112,11 @@ export function table(rows: (string | number)[][], headers?: string[]): string[]
   );
   
   // Format rows
-  const formattedRows = allRows.map(row => {
+  return allRows.map(row => {
     return row.map((cell, colIndex) => 
       String(cell || '').padEnd(columnWidths[colIndex] || 0)
     ).join('  ');
   });
-  
-  return formattedRows;
 }
 
 /**

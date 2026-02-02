@@ -9,7 +9,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defineSystemCommand, defineSystemCommandGroup } from '../define-system-command';
-import type { CommandResult } from '../index';
 
 describe('defineSystemCommand', () => {
   let mockCtx: any; // EnhancedCliContext (PluginContextV3 + helpers)

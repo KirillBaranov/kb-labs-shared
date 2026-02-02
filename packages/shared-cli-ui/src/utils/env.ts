@@ -140,8 +140,7 @@ function parseEnvValue(value: string | undefined, key: string, spec: FlagSpec): 
 
   switch (spec.type) {
     case 'boolean':
-      const boolValue = parseBoolean(value, key);
-      return boolValue;
+      return parseBoolean(value, key);
 
     case 'string':
       const strValue = parseString(value, key);

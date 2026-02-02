@@ -95,6 +95,5 @@ export async function useConfig<T = any>(productId?: string, profileId?: string)
   }
 
   // Returns ONLY the product-specific config, not the entire kb.config.json
-  const result = await platform.config.getConfig(effectiveProductId, profileId) as T | undefined;
-  return result;
+  return await platform.config.getConfig(effectiveProductId, profileId) as T | undefined;
 }
