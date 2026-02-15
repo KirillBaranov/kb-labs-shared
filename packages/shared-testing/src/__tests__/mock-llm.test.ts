@@ -27,8 +27,8 @@ describe('mockLLM', () => {
       await llm.complete('hello');
 
       expect(llm.calls).toHaveLength(1);
-      expect(llm.calls[0].prompt).toBe('hello');
-      expect(llm.calls[0].response.content).toBe('mock response');
+      expect(llm.calls[0]!.prompt).toBe('hello');
+      expect(llm.calls[0]!.response.content).toBe('mock response');
     });
 
     it('should expose lastCall', async () => {
@@ -178,8 +178,8 @@ describe('mockLLM', () => {
       );
 
       expect(res.toolCalls).toHaveLength(1);
-      expect(res.toolCalls![0].name).toBe('search');
-      expect(res.toolCalls![0].input).toEqual({ query: 'test' });
+      expect(res.toolCalls![0]!.name).toBe('search');
+      expect(res.toolCalls![0]!.input).toEqual({ query: 'test' });
     });
 
     it('should record tool call history', async () => {
@@ -190,7 +190,7 @@ describe('mockLLM', () => {
       );
 
       expect(llm.toolCalls).toHaveLength(1);
-      expect(llm.toolCalls[0].messages[0].content).toBe('test');
+      expect(llm.toolCalls[0]!.messages[0]!.content).toBe('test');
     });
   });
 

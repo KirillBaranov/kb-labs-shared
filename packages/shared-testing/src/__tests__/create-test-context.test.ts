@@ -1,6 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { platform } from '@kb-labs/core-runtime';
-import { resetPlatform } from '@kb-labs/core-runtime';
+import { platform, resetPlatform } from '@kb-labs/core-runtime';
 import { createTestContext } from '../create-test-context.js';
 import { mockLLM } from '../mock-llm.js';
 import { mockCache } from '../mock-cache.js';
@@ -38,7 +37,7 @@ describe('createTestContext', () => {
       });
       cleanup();
 
-      expect(ctx.config.apiKey).toBe('test-key');
+      expect(ctx.config!.apiKey).toBe('test-key');
     });
   });
 
