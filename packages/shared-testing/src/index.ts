@@ -29,6 +29,7 @@ export {
 // Mock builders
 export {
   mockLLM,
+  type MockLLM,
   type MockLLMInstance,
   type LLMCall,
   type LLMToolCallRecord,

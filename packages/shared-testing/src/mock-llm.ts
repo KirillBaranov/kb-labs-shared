@@ -67,6 +67,15 @@ export interface MockLLMInstance extends ILLM {
   resetCalls: () => void;
 }
 
+/** Public type returned by mockLLM() — builder fluent API + ILLM spy instance */
+export interface MockLLM extends MockLLMInstance {
+  onComplete(matcher: PromptMatcher): { respondWith: (response: string | LLMResponse | ((prompt: string) => string | LLMResponse)) => MockLLM };
+  onAnyComplete(): { respondWith: (response: string | LLMResponse | ((prompt: string) => string | LLMResponse)) => MockLLM };
+  streaming(chunks: string[]): MockLLM;
+  failing(error: Error): MockLLM;
+  withToolCalls(calls: LLMToolCall[], content?: string): MockLLM;
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Builder
 // ────────────────────────────────────────────────────────────────────
@@ -261,7 +270,7 @@ function toResponse(
  * ]);
  * ```
  */
-export function mockLLM(): MockLLMBuilder & MockLLMInstance {
+export function mockLLM(): MockLLM {
   const builder = new MockLLMBuilder();
 
   // Create a Proxy that acts as both builder and built instance.
@@ -306,5 +315,5 @@ export function mockLLM(): MockLLMBuilder & MockLLMInstance {
     },
   });
 
-  return proxy as MockLLMBuilder & MockLLMInstance;
+  return proxy as unknown as MockLLM;
 }
