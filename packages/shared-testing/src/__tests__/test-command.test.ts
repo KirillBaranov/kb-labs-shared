@@ -119,7 +119,7 @@ const configHandler = {
     ctx: PluginContextV3<{ apiKey: string; verbose: boolean }>,
     _input: { flags: Record<string, unknown>; argv: string[] }
   ): Promise<CommandResult<{ key: string }>> {
-    return { exitCode: 0, result: { key: ctx.config.apiKey } };
+    return { exitCode: 0, result: { key: ctx.config!.apiKey } };
   },
 };
 
