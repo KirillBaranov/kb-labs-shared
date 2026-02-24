@@ -1,6 +1,6 @@
 {
   "name": "@kb-labs/shared-testing",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
   "description": "Test utilities for KB Labs plugin development — mock builders, platform setup, test context",

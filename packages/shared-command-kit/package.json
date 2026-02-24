@@ -1,6 +1,6 @@
 {
   "name": "@kb-labs/shared-command-kit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
   "description": "Command Kit for KB Labs CLI - utilities and high-level API for building commands",

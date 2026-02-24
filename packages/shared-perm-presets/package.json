@@ -1,6 +1,6 @@
 {
   "name": "@kb-labs/perm-presets",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Composable permission presets for KB Labs plugins",
   "type": "module",
   "main": "./dist/index.js",
