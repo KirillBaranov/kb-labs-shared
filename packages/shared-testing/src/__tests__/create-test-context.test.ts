@@ -128,6 +128,23 @@ describe('createTestContext', () => {
 
       cleanup();
     });
+
+    it('should provide environment/workspace/snapshot APIs by default', async () => {
+      const { ctx, cleanup } = createTestContext();
+
+      const workspace = await ctx.api.workspace.materialize({ sourceRef: 'repo://main' });
+      const environment = await ctx.api.environment.create({ templateId: 'node20' });
+      const snapshot = await ctx.api.snapshot.capture({ workspaceId: workspace.workspaceId });
+
+      expect(workspace.workspaceId).toBeDefined();
+      expect(environment.environmentId).toBeDefined();
+      expect(snapshot.snapshotId).toBeDefined();
+      expect(ctx.api.workspace.materialize).toHaveBeenCalled();
+      expect(ctx.api.environment.create).toHaveBeenCalled();
+      expect(ctx.api.snapshot.capture).toHaveBeenCalled();
+
+      cleanup();
+    });
   });
 
   describe('platform overrides', () => {
