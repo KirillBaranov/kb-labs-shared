@@ -35,6 +35,9 @@ import type {
   FetchShim,
   EnvShim,
   InvokeAPI,
+  EnvironmentAPI,
+  WorkspaceAPI,
+  SnapshotAPI,
 } from '@kb-labs/plugin-contracts';
 
 import { setupTestPlatform } from './setup-platform.js';
@@ -81,7 +84,7 @@ export interface TestContextResult<TConfig = unknown> {
 // Mock factories
 // ────────────────────────────────────────────────────────────────────
 
-function createMockTrace(): TraceContext {
+export function createMockTrace(): TraceContext {
   return {
     traceId: 'test-trace-id',
     spanId: 'test-span-id',
@@ -92,7 +95,7 @@ function createMockTrace(): TraceContext {
   };
 }
 
-function createMockUI(): UIFacade {
+export function createMockUI(): UIFacade {
   const messages: string[] = [];
 
   const mockColor = (text: string) => text;
@@ -183,7 +186,7 @@ function createMockUI(): UIFacade {
   };
 }
 
-function createMockRuntime(): RuntimeAPI {
+export function createMockRuntime(): RuntimeAPI {
   const mockFS: FSShim = {
     readFile: vi.fn(async () => ''),
     readFileBuffer: vi.fn(async () => new Uint8Array()),
@@ -225,7 +228,96 @@ function createMockRuntime(): RuntimeAPI {
   };
 }
 
-function createMockPluginAPI(): PluginAPI {
+export function createMockEnvironmentAPI(): EnvironmentAPI {
+  return {
+    create: vi.fn(async () => ({
+      environmentId: 'env_mock_1',
+      provider: 'mock',
+      status: 'ready' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })),
+    status: vi.fn(async (environmentId: string) => ({
+      environmentId,
+      status: 'ready' as const,
+      updatedAt: new Date().toISOString(),
+    })),
+    destroy: vi.fn(async () => {}),
+    renewLease: vi.fn(async () => ({
+      leaseId: 'lease_mock_1',
+      acquiredAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    })),
+  };
+}
+
+export function createMockWorkspaceAPI(): WorkspaceAPI {
+  return {
+    materialize: vi.fn(async () => ({
+      workspaceId: 'ws_mock_1',
+      provider: 'mock',
+      status: 'ready' as const,
+      rootPath: '/tmp/ws_mock_1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })),
+    attach: vi.fn(async (request) => ({
+      workspaceId: request.workspaceId,
+      environmentId: request.environmentId,
+      mountPath: request.mountPath ?? '/workspace',
+      attachedAt: new Date().toISOString(),
+    })),
+    release: vi.fn(async () => {}),
+    status: vi.fn(async (workspaceId: string) => ({
+      workspaceId,
+      status: 'ready' as const,
+      updatedAt: new Date().toISOString(),
+    })),
+  };
+}
+
+export function createMockSnapshotAPI(): SnapshotAPI {
+  return {
+    capture: vi.fn(async (request) => ({
+      snapshotId: request.snapshotId ?? 'snap_mock_1',
+      provider: 'mock',
+      status: 'ready' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      workspaceId: request.workspaceId,
+      environmentId: request.environmentId,
+    })),
+    restore: vi.fn(async (request) => ({
+      snapshotId: request.snapshotId,
+      restoredAt: new Date().toISOString(),
+      workspaceId: request.workspaceId,
+      environmentId: request.environmentId,
+      targetPath: request.targetPath,
+    })),
+    status: vi.fn(async (snapshotId: string) => ({
+      snapshotId,
+      status: 'ready' as const,
+      updatedAt: new Date().toISOString(),
+    })),
+    delete: vi.fn(async () => {}),
+    gc: vi.fn(async (request) => ({
+      scanned: 0,
+      deleted: 0,
+      dryRun: request?.dryRun ?? false,
+    })),
+  };
+}
+
+export function createInfraApiMocks(): Pick<PluginAPI, 'environment' | 'workspace' | 'snapshot'> {
+  return {
+    environment: createMockEnvironmentAPI(),
+    workspace: createMockWorkspaceAPI(),
+    snapshot: createMockSnapshotAPI(),
+  };
+}
+
+export function createMockPluginAPI(): PluginAPI {
+  const infra = createInfraApiMocks();
   return {
     lifecycle: {
       onCleanup: vi.fn(),
@@ -278,7 +370,18 @@ function createMockPluginAPI(): PluginAPI {
       resume: vi.fn(async () => {}),
       trigger: vi.fn(async () => {}),
     },
+    environment: infra.environment,
+    workspace: infra.workspace,
+    snapshot: infra.snapshot,
   };
+}
+
+export const createMockPlatformApi = createMockPluginAPI;
+
+export function createMockPluginContextV3<TConfig = unknown>(
+  options: CreateTestContextOptions = {}
+): TestContextResult<TConfig> {
+  return createTestContext<TConfig>(options);
 }
 
 // ────────────────────────────────────────────────────────────────────
@@ -384,6 +487,14 @@ export function createTestContext<TConfig = unknown>(
     eventBus: {
       publish: vi.fn(async () => {}),
       subscribe: vi.fn(() => () => {}),
+    },
+    logs: {
+      query: vi.fn(async () => ({ logs: [], total: 0, hasMore: false, source: 'buffer' as const })),
+      getById: vi.fn(async () => null),
+      search: vi.fn(async () => ({ logs: [], total: 0, hasMore: false })),
+      subscribe: vi.fn(() => () => {}),
+      getStats: vi.fn(async () => ({})),
+      getCapabilities: vi.fn(() => ({ hasBuffer: false, hasPersistence: false, hasSearch: false, hasStreaming: false })),
     },
   };
 
