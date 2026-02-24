@@ -6,7 +6,7 @@
  * configuration checks and helpful error messages.
  */
 
-import type { PluginContext } from '@kb-labs/plugin-runtime';
+import type { PluginContextV3 as PluginContext } from '@kb-labs/plugin-runtime';
 import type {
   ILLM,
   IEmbeddings,
@@ -16,8 +16,6 @@ import type {
   ILogger,
   IAnalytics,
   IEventBus,
-  IWorkflowEngine,
-  IJobScheduler,
   LLMOptions,
   LLMResponse,
   VectorSearchResult,
@@ -59,10 +57,10 @@ export class ServiceNotConfiguredError extends Error {
  * ```
  */
 export function useLLM(ctx: PluginContext): ILLM {
-  if (!ctx.platform.isConfigured('llm')) {
+  if (!ctx.platform.llm) {
     throw new ServiceNotConfiguredError('llm', '@kb-labs/shared-openai');
   }
-  return ctx.platform.llm!;
+  return ctx.platform.llm;
 }
 
 /**
@@ -80,10 +78,10 @@ export function useLLM(ctx: PluginContext): ILLM {
  * ```
  */
 export function useEmbeddings(ctx: PluginContext): IEmbeddings {
-  if (!ctx.platform.isConfigured('embeddings')) {
+  if (!ctx.platform.embeddings) {
     throw new ServiceNotConfiguredError('embeddings', '@kb-labs/shared-openai');
   }
-  return ctx.platform.embeddings!;
+  return ctx.platform.embeddings;
 }
 
 /**
@@ -101,10 +99,10 @@ export function useEmbeddings(ctx: PluginContext): IEmbeddings {
  * ```
  */
 export function useVectorStore(ctx: PluginContext): IVectorStore {
-  if (!ctx.platform.isConfigured('vectorStore')) {
+  if (!ctx.platform.vectorStore) {
     throw new ServiceNotConfiguredError('vectorStore', '@kb-labs/mind-qdrant');
   }
-  return ctx.platform.vectorStore!;
+  return ctx.platform.vectorStore;
 }
 
 /**
@@ -195,48 +193,7 @@ export function useAnalytics(ctx: PluginContext): IAnalytics {
  * ```
  */
 export function useEventBus(ctx: PluginContext): IEventBus {
-  return ctx.platform.events!;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CORE FEATURES (Built-in Services)
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Get workflow engine.
- * Always available after platform initialization.
- *
- * @param ctx - Plugin context
- * @returns Workflow engine service
- *
- * @example
- * ```typescript
- * const workflows = useWorkflows(ctx);
- * const run = await workflows.execute('data-pipeline', { source: 'api' });
- * ```
- */
-export function useWorkflows(ctx: PluginContext): IWorkflowEngine {
-  return ctx.platform.workflows!;
-}
-
-/**
- * Get job scheduler.
- * Always available after platform initialization.
- *
- * @param ctx - Plugin context
- * @returns Job scheduler service
- *
- * @example
- * ```typescript
- * const jobs = useJobs(ctx);
- * const handle = await jobs.submit({
- *   type: 'export',
- *   payload: { format: 'csv' },
- * });
- * ```
- */
-export function useJobs(ctx: PluginContext): IJobScheduler {
-  return ctx.platform.jobs!;
+  return ctx.platform.eventBus;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -370,20 +327,9 @@ export function streamLLM(
  * Non-throwing alternative to use* functions.
  *
  * @param ctx - Plugin context
- * @param service - Service name
+ * @param service - Service name to check ('llm' | 'embeddings' | 'vectorStore' | 'cache' | 'storage' | 'analytics' | 'eventBus')
  * @returns true if service is configured, false otherwise
- *
- * @example
- * ```typescript
- * if (isServiceConfigured(ctx, 'llm')) {
- *   // Use LLM
- *   const response = await completeLLM(ctx, prompt);
- * } else {
- *   // Fallback behavior
- *   ctx.ui.warning('LLM not configured, using fallback');
- * }
- * ```
  */
-export function isServiceConfigured(ctx: PluginContext, service: string): boolean {
-  return ctx.platform.isConfigured(service);
+export function isServiceConfigured(ctx: PluginContext, service: keyof typeof ctx.platform): boolean {
+  return !!ctx.platform[service];
 }

@@ -29,7 +29,21 @@
  */
 
 import { usePlatform } from './use-platform.js';
-import type { ILLM, LLMTier, UseLLMOptions, ILLMRouter } from '@kb-labs/core-platform';
+import type {
+  ILLM,
+  LLMTier,
+  LLMOptions,
+  LLMResponse,
+  LLMMessage,
+  LLMToolCallOptions,
+  LLMToolCallResponse,
+  UseLLMOptions,
+  ILLMRouter,
+  LLMAdapterBinding,
+  LLMExecutionPolicy,
+  LLMProtocolCapabilities,
+  LLMCacheDecisionTrace,
+} from '@kb-labs/core-platform';
 
 /**
  * Access global LLM adapter with tier-based selection.
@@ -75,12 +89,172 @@ export function useLLM(options?: UseLLMOptions): ILLM | undefined {
     return undefined;
   }
 
-  // If LLM is a router, resolve tier (logs warning if degraded)
+  // If router and options given → return immutable LazyBoundLLM (no state mutation)
   if (options && isLLMRouter(llm)) {
-    llm.resolve(options);
+    return new LazyBoundLLM(llm, options);
   }
 
   return llm;
+}
+
+/**
+ * Lazy adapter binding that resolves tier on first use.
+ * Immutable — does NOT mutate the global LLMRouter state.
+ * This fixes the race condition where useLLM({ tier: 'large' }) was immediately
+ * overwritten by useLLM({ tier: 'small' }) from SmartSummarizer.
+ */
+class LazyBoundLLM implements ILLM {
+  private _resolved: Promise<LLMAdapterBinding> | null = null;
+
+  constructor(
+    private readonly router: ILLM & ILLMRouter,
+    private readonly options: UseLLMOptions,
+  ) {}
+
+  private resolve(): Promise<LLMAdapterBinding> {
+    if (!this._resolved) {
+      this._resolved = this.router.resolveAdapter(this.options);
+    }
+    return this._resolved;
+  }
+
+  private mergeExecutionPolicy(callOptions?: LLMOptions): LLMExecutionPolicy | undefined {
+    const globalPolicy = this.options.execution;
+    const localPolicy = callOptions?.execution;
+    if (!globalPolicy && !localPolicy) {
+      return undefined;
+    }
+    return {
+      ...globalPolicy,
+      ...localPolicy,
+      cache: { ...globalPolicy?.cache, ...localPolicy?.cache },
+      stream: { ...globalPolicy?.stream, ...localPolicy?.stream },
+    };
+  }
+
+  private async resolveProtocolCapabilities(adapter: ILLM): Promise<LLMProtocolCapabilities> {
+    if (!adapter.getProtocolCapabilities) {
+      return {
+        cache: { supported: false },
+        stream: { supported: true },
+      };
+    }
+    return adapter.getProtocolCapabilities();
+  }
+
+  private enforceCachePolicy(caps: LLMProtocolCapabilities, execution?: LLMExecutionPolicy): void {
+    if (execution?.cache?.mode === 'require' && !caps.cache.supported) {
+      throw new Error('CACHE_NOT_SUPPORTED: adapter does not support required cache policy');
+    }
+  }
+
+  private buildDecisionTrace(
+    caps: LLMProtocolCapabilities,
+    execution: LLMExecutionPolicy | undefined,
+    streamAppliedMode: 'prefer' | 'require' | 'off',
+    streamFallback?: 'complete',
+    reason?: string,
+  ): LLMCacheDecisionTrace {
+    const requestedCacheMode = execution?.cache?.mode ?? 'prefer';
+    const requestedStreamMode = execution?.stream?.mode ?? 'prefer';
+
+    return {
+      cacheRequestedMode: requestedCacheMode,
+      cacheSupported: caps.cache.supported,
+      cacheAppliedMode:
+        requestedCacheMode === 'require' || requestedCacheMode === 'bypass'
+          ? requestedCacheMode
+          : caps.cache.supported
+            ? 'prefer'
+            : 'bypass',
+      streamRequestedMode: requestedStreamMode,
+      streamSupported: caps.stream.supported,
+      streamAppliedMode,
+      streamFallback,
+      reason,
+    };
+  }
+
+  private withDecisionMetadata(
+    options: LLMOptions | undefined,
+    trace: LLMCacheDecisionTrace,
+  ): LLMOptions | undefined {
+    if (!options) {
+      return { metadata: { cacheDecisionTrace: trace } };
+    }
+
+    return {
+      ...options,
+      metadata: {
+        ...options.metadata,
+        cacheDecisionTrace: trace,
+      },
+    };
+  }
+
+  async complete(prompt: string, options?: LLMOptions): Promise<LLMResponse> {
+    const { adapter, model } = await this.resolve();
+    const execution = this.mergeExecutionPolicy(options);
+    const caps = await this.resolveProtocolCapabilities(adapter);
+    this.enforceCachePolicy(caps, execution);
+    const trace = this.buildDecisionTrace(caps, execution, 'off');
+    const optionsWithTrace = this.withDecisionMetadata(options, trace);
+    return adapter.complete(prompt, { ...optionsWithTrace, model, execution });
+  }
+
+  async *stream(prompt: string, options?: LLMOptions): AsyncIterable<string> {
+    const { adapter, model } = await this.resolve();
+    const execution = this.mergeExecutionPolicy(options);
+    const caps = await this.resolveProtocolCapabilities(adapter);
+    this.enforceCachePolicy(caps, execution);
+
+    const streamMode = execution?.stream?.mode ?? 'prefer';
+    const canStream = caps.stream.supported;
+    const allowFallback = execution?.stream?.fallbackToComplete ?? true;
+
+    if (streamMode === 'off' || (!canStream && streamMode === 'prefer' && allowFallback)) {
+      const fallbackReason =
+        streamMode === 'off'
+          ? 'STREAM_OFF'
+          : 'STREAM_UNSUPPORTED_FALLBACK_TO_COMPLETE';
+      const trace = this.buildDecisionTrace(caps, execution, 'off', 'complete', fallbackReason);
+      const optionsWithTrace = this.withDecisionMetadata(options, trace);
+      const response = await adapter.complete(prompt, { ...optionsWithTrace, model, execution });
+      if (response.content) {
+        yield response.content;
+      }
+      return;
+    }
+
+    if (!canStream && streamMode === 'require') {
+      throw new Error('STREAM_NOT_SUPPORTED: adapter does not support required streaming');
+    }
+
+    const trace = this.buildDecisionTrace(caps, execution, streamMode);
+    const optionsWithTrace = this.withDecisionMetadata(options, trace);
+    yield* adapter.stream(prompt, { ...optionsWithTrace, model, execution });
+  }
+
+  async chatWithTools(
+    messages: LLMMessage[],
+    options: LLMToolCallOptions,
+  ): Promise<LLMToolCallResponse> {
+    const { adapter, model, tier } = await this.resolve();
+    const execution = this.mergeExecutionPolicy(options);
+    const caps = await this.resolveProtocolCapabilities(adapter);
+    this.enforceCachePolicy(caps, execution);
+    if (!adapter.chatWithTools) {
+      throw new Error('Current adapter does not support chatWithTools');
+    }
+    const trace = this.buildDecisionTrace(caps, execution, 'off');
+    const optionsWithTrace = this.withDecisionMetadata(options, trace) as LLMToolCallOptions;
+    return adapter.chatWithTools(messages, {
+      ...optionsWithTrace,
+      model,
+      execution,
+      metadata: { ...optionsWithTrace.metadata, tier },
+    });
+  }
 }
 
 /**
@@ -140,4 +314,3 @@ function isLLMRouter(llm: ILLM): llm is ILLM & ILLMRouter {
 
 // Re-export types for convenience
 export type { LLMTier, UseLLMOptions } from '@kb-labs/core-platform';
-

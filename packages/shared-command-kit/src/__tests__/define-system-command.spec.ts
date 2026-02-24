@@ -91,8 +91,9 @@ describe('defineSystemCommand', () => {
       expect(command.aliases).toEqual(['tc', 'test']);
       expect(command.examples).toEqual(['kb test-cmd --flag value']);
       expect(command.flags).toHaveLength(1);
-      expect(command.flags![0].name).toBe('flag');
-      expect(command.flags![0].type).toBe('string');
+      const firstFlag = command.flags![0]!;
+      expect(firstFlag.name).toBe('flag');
+      expect(firstFlag.type).toBe('string');
     });
 
     it('should default category to "system"', () => {
@@ -491,8 +492,8 @@ describe('defineSystemCommandGroup', () => {
     expect(group.name).toBe('test-group');
     expect(group.describe).toBe('Test command group');
     expect(group.commands).toHaveLength(2);
-    expect(group.commands[0].name).toBe('cmd1');
-    expect(group.commands[1].name).toBe('cmd2');
+    expect(group.commands[0]!.name).toBe('cmd1');
+    expect(group.commands[1]!.name).toBe('cmd2');
   });
 
   it('should handle empty command array', () => {

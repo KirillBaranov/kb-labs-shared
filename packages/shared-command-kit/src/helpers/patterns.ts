@@ -6,7 +6,7 @@
  * proper error handling and progress feedback.
  */
 
-import type { PluginContext } from '@kb-labs/plugin-runtime';
+import type { PluginContextV3 as PluginContext } from '@kb-labs/plugin-runtime';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SPINNER PATTERN (Progress feedback)
@@ -40,11 +40,10 @@ export async function withSpinner<T>(
   message: string,
   fn: () => Promise<T>
 ): Promise<T> {
-  ctx.ui?.message(`${message}...`);
+  ctx.ui?.info(`${message}...`);
 
   try {
     const result = await fn();
-    // @ts-expect-error - DTS generation has issues with optional chaining
     ctx.ui?.success(`${message} ✓`);
     return result;
   } catch (error) {
@@ -116,7 +115,7 @@ export interface BatchOptions<T, R> {
  *   {
  *     concurrency: 10,
  *     onProgress: (completed, total) => {
- *       ctx.ui.message(`Processed ${completed}/${total}`);
+ *       ctx.ui.info(`Processed ${completed}/${total}`);
  *     },
  *   }
  * );
@@ -206,7 +205,7 @@ export async function processBatchWithUI<T, R>(
   return processBatch(items, fn, {
     ...options,
     onProgress: (completed, total) => {
-      ctx.ui.message(`Processing ${completed}/${total}...`);
+      ctx.ui.info(`Processing ${completed}/${total}...`);
     },
   });
 }
@@ -332,9 +331,8 @@ export async function retryWithUI<T>(
   return retryWithBackoff(fn, {
     ...options,
     onRetry: async (attempt, error) => {
-      // @ts-expect-error - DTS generation has issues with optional chaining
-      ctx.ui?.warning(`${message} failed: ${error.message}`);
-      ctx.ui?.message(`Retrying (${attempt}/${options.maxRetries ?? 3})...`);
+      ctx.ui?.warn(`${message} failed: ${error.message}`);
+      ctx.ui?.info(`Retrying (${attempt}/${options.maxRetries ?? 3})...`);
 
       if (options.onRetry) {
         await options.onRetry(attempt, error);

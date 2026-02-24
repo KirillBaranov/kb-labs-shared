@@ -37,10 +37,7 @@ describe('defineWebSocket', () => {
         logger: mockLogger,
       } as any,
       config: {},
-      workspace: {} as any,
-      storage: {} as any,
-      permissions: {} as any,
-    };
+    } as any;
 
     mockSender = {
       send: vi.fn(),
@@ -310,9 +307,8 @@ describe('isWSHost', () => {
   it('should return false for non-ws host context', () => {
     const cliContext = {
       host: 'cli' as const,
-      cwd: '/test',
-      requestId: 'req-123',
-      traceId: 'trace-123',
+      argv: [],
+      flags: {},
     };
 
     expect(isWSHost(cliContext)).toBe(false);

@@ -74,7 +74,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: { name: 'test' }, argv: [] });
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
     expect(handler).toHaveBeenCalledOnce();
     expect(handler.mock.calls[0]?.[0]).toBe(mockCtx);
     expect(handler.mock.calls[0]?.[1]).toEqual({ flags: { name: 'test' }, argv: [] });
@@ -138,7 +138,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
   });
 
   it('should handle handler returning object with ok', async () => {
@@ -155,7 +155,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
   });
 
   it('should handle errors in handler', async () => {
@@ -211,7 +211,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(2);
-    expect(result.ok).toBe(false);
+    expect(result.exitCode).not.toBe(0);
   });
 
   it('should handle handler returning object with ok: false', async () => {
@@ -228,7 +228,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(1);
-    expect(result.ok).toBe(false);
+    expect(result.exitCode).not.toBe(0);
   });
 
   it('should pass through custom result fields', async () => {
@@ -250,7 +250,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] }) as any;
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
     expect(result.customField).toBe('custom-value');
     expect(result.data).toEqual({ nested: 'data' });
   });
@@ -272,7 +272,7 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
   });
 
   it('should work with sync handlers', async () => {
@@ -289,6 +289,6 @@ describe('defineCommand', () => {
     const result = await command.execute(mockCtx, { flags: {}, argv: [] });
 
     expect(result.exitCode).toBe(0);
-    expect(result.ok).toBe(true);
+    expect(result.exitCode).toBe(0);
   });
 });

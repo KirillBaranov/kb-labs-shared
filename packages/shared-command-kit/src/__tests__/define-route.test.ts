@@ -22,7 +22,6 @@ describe('defineRoute', () => {
       host: 'rest',
       path: '/api/test',
       method: 'POST',
-      clientIp: '127.0.0.1',
       headers: {},
       requestId: 'req-123',
       traceId: 'trace-123',
@@ -31,14 +30,10 @@ describe('defineRoute', () => {
     mockContext = {
       host: 'rest',
       hostContext: restHostContext,
-      logger: mockLogger,
       ui: {} as any,
       platform: {} as any,
       config: {},
-      workspace: {} as any,
-      storage: {} as any,
-      permissions: {} as any,
-    };
+    } as any;
   });
 
   describe('host validation', () => {
@@ -270,7 +265,6 @@ describe('isRESTHost', () => {
       host: 'rest',
       path: '/api/test',
       method: 'POST',
-      clientIp: '127.0.0.1',
       headers: {},
       requestId: 'req-123',
       traceId: 'trace-123',
@@ -282,9 +276,8 @@ describe('isRESTHost', () => {
   it('should return false for non-REST host context', () => {
     const cliContext = {
       host: 'cli' as const,
-      cwd: '/test',
-      requestId: 'req-123',
-      traceId: 'trace-123',
+      argv: [],
+      flags: {},
     };
 
     expect(isRESTHost(cliContext)).toBe(false);

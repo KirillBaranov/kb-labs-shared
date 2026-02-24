@@ -118,8 +118,8 @@ describe('defineMessage', () => {
     });
 
     expect(message.type).toBe('progress');
-    expect(message.payload.phase).toBe('analyzing');
-    expect(message.payload.progress).toBe(50);
+    expect((message.payload as any).phase).toBe('analyzing');
+    expect((message.payload as any).progress).toBe(50);
   });
 
   it('should support different payload types', () => {

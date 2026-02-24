@@ -23,23 +23,15 @@ describe('defineWebhook', () => {
       event: 'github:push',
       source: 'github',
       payload: { ref: 'refs/heads/main' },
-      clientIp: '127.0.0.1',
-      headers: {},
-      requestId: 'req-123',
-      traceId: 'trace-123',
     };
 
     mockContext = {
       host: 'webhook',
       hostContext: webhookHostContext,
-      logger: mockLogger,
       ui: {} as any,
       platform: {} as any,
       config: {},
-      workspace: {} as any,
-      storage: {} as any,
-      permissions: {} as any,
-    };
+    } as any;
   });
 
   describe('host validation', () => {
@@ -147,10 +139,6 @@ describe('isWebhookHost', () => {
       event: 'github:push',
       source: 'github',
       payload: {},
-      clientIp: '127.0.0.1',
-      headers: {},
-      requestId: 'req-123',
-      traceId: 'trace-123',
     };
 
     expect(isWebhookHost(webhookContext)).toBe(true);
@@ -159,9 +147,8 @@ describe('isWebhookHost', () => {
   it('should return false for non-webhook host context', () => {
     const cliContext = {
       host: 'cli' as const,
-      cwd: '/test',
-      requestId: 'req-123',
-      traceId: 'trace-123',
+      argv: [],
+      flags: {},
     };
 
     expect(isWebhookHost(cliContext)).toBe(false);

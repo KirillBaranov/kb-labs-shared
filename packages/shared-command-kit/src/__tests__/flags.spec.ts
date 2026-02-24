@@ -228,7 +228,7 @@ describe('validateFlags - advanced features', () => {
     const schema = defineFlags({
       port: {
         type: 'number',
-        validate: (value) => {
+        validate: (value: number) => {
           if (value < 1024 || value > 65535) {
             return 'Port must be between 1024 and 65535';
           }
@@ -248,7 +248,7 @@ describe('validateFlags - advanced features', () => {
     const schema = defineFlags({
       name: {
         type: 'string',
-        validate: async (value) => {
+        validate: async (value: string) => {
           // Simulate async check
           await new Promise((resolve) => setTimeout(resolve, 10));
           if (value.length < 3) {
@@ -269,7 +269,7 @@ describe('validateFlags - advanced features', () => {
     const schema = defineFlags({
       name: {
         type: 'string',
-        transform: (value) => value.toUpperCase(),
+        transform: (value: string) => value.toUpperCase(),
       },
     });
 
@@ -281,7 +281,7 @@ describe('validateFlags - advanced features', () => {
     const schema = defineFlags({
       name: {
         type: 'string',
-        transform: async (value) => {
+        transform: async (value: string) => {
           await new Promise((resolve) => setTimeout(resolve, 10));
           return value.trim().toLowerCase();
         },

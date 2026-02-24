@@ -3,7 +3,7 @@
  * User-friendly formatting for flag validation errors
  */
 
-import type { FlagValidationError } from '../flags/types';
+import type { FlagValidationError, StringFlagSchema } from '../flags/types';
 import type { FlagSchemaDefinition } from '../flags/types';
 
 /**
@@ -127,9 +127,9 @@ function formatFlagForUsage(
 ): string {
   let valueHint: string;
 
-  if ('choices' in schema && schema.choices && schema.choices.length > 0) {
+  if ('choices' in schema && (schema as StringFlagSchema).choices && (schema as StringFlagSchema).choices!.length > 0) {
     // Show choices: <local|auto>
-    valueHint = `<${schema.choices.join('|')}>`;
+    valueHint = `<${(schema as StringFlagSchema).choices!.join('|')}>`;
   } else if (schema.type === 'boolean') {
     // Boolean flags don't need a value hint
     return schema.required ? `--${name}` : `[--${name}]`;
