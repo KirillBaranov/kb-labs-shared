@@ -7,13 +7,13 @@ This document defines the documentation standards for **KB Labs Shared**. This p
 
 ## Project-Specific Customizations
 
-KB Labs Shared provides common types and utilities without side effects. Documentation should focus on:
+KB Labs Shared provides building blocks for all KB Labs plugins. Documentation should focus on:
 
-- Shared utilities and types
-- Module boundary checking
-- Diff parsing utilities
-- Text operations
-- Profile management
+- Platform composables and command definitions (`shared-command-kit`)
+- CLI UI formatting utilities (`shared-cli-ui`)
+- Permission presets for plugin manifests (`perm-presets`)
+- Mock builders and test helpers (`shared-testing`)
+- Tool factory for agent tools (`shared-tool-kit`)
 
 ## Project Documentation Structure
 
@@ -62,7 +62,7 @@ This project links to:
 
 ---
 
-**Last Updated:** 2025-11-03  
+**Last Updated:** 2026-02-24
 **Standard Version:** 1.0 (following KB Labs ecosystem standard)  
 **See Main Standard:** [KB Labs Documentation Standard](https://github.com/KirillBaranov/kb-labs/blob/main/docs/DOCUMENTATION.md)
 

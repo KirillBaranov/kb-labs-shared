@@ -177,35 +177,21 @@ export const listCommand = defineSystemCommand<ListResult>({
 
 ### defineManifest
 
-Define a ManifestV2 for your plugin with type safety and zero runtime dependencies.
+Define a ManifestV3 for your plugin with type safety and zero runtime dependencies.
 
 ```typescript
 import { defineManifest } from '@kb-labs/shared-command-kit';
 
 export const manifest = defineManifest({
-  schema: 'kb.plugin/2',
+  schema: 'kb.plugin/3',
   id: '@kb-labs/my-plugin',
   version: '1.0.0',
-  display: {
-    name: 'My Plugin',
-    description: 'Description of my plugin',
-    tags: ['example', 'plugin'],
-  },
-  cli: {
-    commands: [
-      {
-        manifestVersion: '1.0',
-        id: 'hello',
-        group: 'my-plugin',
-        describe: 'Say hello',
-        flags: [
-          { name: 'name', type: 'string', description: 'Name to greet' },
-          { name: 'json', type: 'boolean', description: 'JSON output' },
-        ],
-        handler: './cli/commands/hello#run',
-      },
-    ],
-  },
+  commands: [
+    {
+      name: 'hello',
+      handler: './cli/commands/hello.js',
+    },
+  ],
   permissions: {
     fs: {
       mode: 'read',
@@ -224,17 +210,7 @@ export default manifest;
 - ✅ **IDE autocomplete** - Get full IntelliSense for all manifest fields
 - ✅ **Optional validation** - Can add runtime validation in development if needed
 
-**Migration from `createManifestV2`:**
-
-```typescript
-// OLD (deprecated):
-import { createManifestV2 } from '@kb-labs/plugin-manifest';
-export const manifest = createManifestV2({ ... });
-
-// NEW (recommended):
-import { defineManifest } from '@kb-labs/shared-command-kit';
-export const manifest = defineManifest({ ... });
-```
+**Note:** `defineManifest` is the V3 API. Legacy `createManifestV2` from `@kb-labs/plugin-manifest` is deprecated.
 
 ### defineCommandFlags
 
