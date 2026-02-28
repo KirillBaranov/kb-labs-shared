@@ -54,6 +54,16 @@ export {
 // Test context factory
 export {
   createTestContext,
+  createMockPluginContextV3,
+  createMockPlatformApi,
+  createMockPluginAPI,
+  createMockEnvironmentAPI,
+  createMockWorkspaceAPI,
+  createMockSnapshotAPI,
+  createInfraApiMocks,
+  createMockRuntime,
+  createMockUI,
+  createMockTrace,
   type CreateTestContextOptions,
   type TestContextResult,
 } from './create-test-context.js';

@@ -30,7 +30,7 @@ describe('MessageBuilder', () => {
     });
 
     it('should create message without messageId', () => {
-      const builder = new MessageBuilder<{}>('ping');
+      const builder = new MessageBuilder<object>('ping');
 
       const message = builder.create({});
 
@@ -41,7 +41,7 @@ describe('MessageBuilder', () => {
     });
 
     it('should generate unique timestamps for sequential calls', () => {
-      const builder = new MessageBuilder<{}>('test');
+      const builder = new MessageBuilder<object>('test');
 
       const msg1 = builder.create({});
       const msg2 = builder.create({});
@@ -99,7 +99,7 @@ describe('MessageBuilder', () => {
 
 describe('defineMessage', () => {
   it('should create MessageBuilder instance', () => {
-    const PingMsg = defineMessage<{}>('ping');
+    const PingMsg = defineMessage<object>('ping');
 
     expect(PingMsg).toBeInstanceOf(MessageBuilder);
   });
@@ -161,7 +161,7 @@ describe('MessageRouter', () => {
   describe('on', () => {
     it('should register message handler', () => {
       const router = new MessageRouter();
-      const PingMsg = defineMessage<{}>('ping');
+      const PingMsg = defineMessage<object>('ping');
       const handler = vi.fn();
 
       router.on(PingMsg, handler);
@@ -172,8 +172,8 @@ describe('MessageRouter', () => {
 
     it('should support chaining', () => {
       const router = new MessageRouter();
-      const PingMsg = defineMessage<{}>('ping');
-      const PongMsg = defineMessage<{}>('pong');
+      const PingMsg = defineMessage<object>('ping');
+      const PongMsg = defineMessage<object>('pong');
 
       const result = router.on(PingMsg, vi.fn()).on(PongMsg, vi.fn());
 
@@ -182,8 +182,8 @@ describe('MessageRouter', () => {
 
     it('should register multiple handlers for different message types', () => {
       const router = new MessageRouter();
-      const StartMsg = defineMessage<{}>('start');
-      const StopMsg = defineMessage<{}>('stop');
+      const StartMsg = defineMessage<object>('start');
+      const StopMsg = defineMessage<object>('stop');
 
       const startHandler = vi.fn();
       const stopHandler = vi.fn();
@@ -198,7 +198,7 @@ describe('MessageRouter', () => {
   describe('handle', () => {
     it('should call handler for matching message type', async () => {
       const router = new MessageRouter();
-      const PingMsg = defineMessage<{}>('ping');
+      const PingMsg = defineMessage<object>('ping');
       const handler = vi.fn();
 
       router.on(PingMsg, handler);
@@ -217,7 +217,7 @@ describe('MessageRouter', () => {
 
     it('should return false for unhandled message type', async () => {
       const router = new MessageRouter();
-      const PingMsg = defineMessage<{}>('ping');
+      const PingMsg = defineMessage<object>('ping');
 
       router.on(PingMsg, vi.fn());
 
@@ -252,11 +252,11 @@ describe('MessageRouter', () => {
 
     it('should handle async handlers', async () => {
       const router = new MessageRouter();
-      const StartMsg = defineMessage<{}>('start');
+      const StartMsg = defineMessage<object>('start');
 
       let resolved = false;
       const asyncHandler = vi.fn(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise<void>((resolve) => { setTimeout(resolve, 10); });
         resolved = true;
       });
 
@@ -276,9 +276,9 @@ describe('MessageRouter', () => {
 
     it('should route to correct handler among multiple', async () => {
       const router = new MessageRouter();
-      const PingMsg = defineMessage<{}>('ping');
-      const PongMsg = defineMessage<{}>('pong');
-      const StartMsg = defineMessage<{}>('start');
+      const PingMsg = defineMessage<object>('ping');
+      const PongMsg = defineMessage<object>('pong');
+      const StartMsg = defineMessage<object>('start');
 
       const pingHandler = vi.fn();
       const pongHandler = vi.fn();
@@ -301,7 +301,7 @@ describe('MessageRouter', () => {
 
     it('should propagate handler errors', async () => {
       const router = new MessageRouter();
-      const ErrorMsg = defineMessage<{}>('error');
+      const ErrorMsg = defineMessage<object>('error');
       const error = new Error('Handler failed');
 
       router.on(ErrorMsg, async () => {

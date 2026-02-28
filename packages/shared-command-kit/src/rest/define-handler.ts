@@ -181,7 +181,7 @@ export function defineHandler<TConfig = unknown, TInput = unknown, TOutput = unk
       //   await mw.after?.(ctx, input, result);
       // }
 
-      return await definition.execute(ctx, input);
+      return definition.execute(ctx, input);
     },
   };
 }

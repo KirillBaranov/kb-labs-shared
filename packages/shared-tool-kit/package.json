@@ -2,7 +2,6 @@
   "name": "@kb-labs/shared-tool-kit",
   "version": "1.0.0",
   "type": "module",
-  "private": true,
   "description": "Tool factory and mock utilities for KB Labs agent tool development",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,15 +29,19 @@
     "lint:fix": "eslint src --fix"
   },
   "devDependencies": {
-    "@kb-labs/devkit": "link:../../../kb-labs-devkit",
+    "@kb-labs/devkit": "^1.0.0",
     "@types/node": "^24.3.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.11.0"
+  "packageManager": "pnpm@9.11.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }

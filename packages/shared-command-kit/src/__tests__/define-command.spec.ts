@@ -257,7 +257,7 @@ describe('defineCommand', () => {
 
   it('should work with async handlers', async () => {
     const handler = vi.fn(async () => {
-      await new Promise<void>(resolve => setTimeout(resolve, 10));
+      await new Promise<void>(resolve => { setTimeout(resolve, 10); });
       return { exitCode: 0, ok: true };
     });
 

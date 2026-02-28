@@ -298,7 +298,7 @@ export async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError!;
+  throw lastError instanceof Error ? lastError : new Error('Retry loop exhausted without error');
 }
 
 /**
@@ -351,7 +351,7 @@ export async function retryWithUI<T>(
  * @param ms - Duration in milliseconds
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise<void>((resolve) => { setTimeout(resolve, ms); });
 }
 
 /**
@@ -456,7 +456,7 @@ export function throttle<T extends (...args: any[]) => Promise<any>>(
 
     if (now - lastCall >= intervalMs) {
       lastCall = now;
-      return await fn(...args);
+      return fn(...args);
     }
 
     return undefined;

@@ -250,7 +250,7 @@ describe('validateFlags - advanced features', () => {
         type: 'string',
         validate: async (value: string) => {
           // Simulate async check
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await new Promise<void>((resolve) => { setTimeout(resolve, 10); });
           if (value.length < 3) {
             return 'Name must be at least 3 characters';
           }
@@ -282,7 +282,7 @@ describe('validateFlags - advanced features', () => {
       name: {
         type: 'string',
         transform: async (value: string) => {
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await new Promise<void>((resolve) => { setTimeout(resolve, 10); });
           return value.trim().toLowerCase();
         },
       },

@@ -2,7 +2,6 @@
   "name": "@kb-labs/shared-command-kit",
   "version": "1.0.0",
   "type": "module",
-  "private": true,
   "description": "Command Kit for KB Labs CLI - utilities and high-level API for building commands",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -49,18 +48,18 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kb-labs/core-platform": "link:../../../kb-labs-core/packages/core-platform",
-    "@kb-labs/core-resource-broker": "link:../../../kb-labs-core/packages/core-resource-broker",
-    "@kb-labs/core-runtime": "link:../../../kb-labs-core/packages/core-runtime",
-    "@kb-labs/plugin-contracts": "link:../../../kb-labs-plugin/packages/plugin-contracts",
-    "@kb-labs/plugin-runtime": "link:../../../kb-labs-plugin/packages/plugin-runtime",
+    "@kb-labs/core-platform": "^1.0.0",
+    "@kb-labs/core-resource-broker": "^1.0.0",
+    "@kb-labs/core-runtime": "^1.0.0",
+    "@kb-labs/plugin-contracts": "^1.0.0",
+    "@kb-labs/plugin-runtime": "^1.0.0",
     "@kb-labs/shared-cli-ui": "workspace:*",
     "@kb-labs/studio-contracts": "link:../../../kb-labs-studio/packages/studio-contracts",
     "zod": "^3.23.8",
     "glob": "^11.0.0"
   },
   "devDependencies": {
-    "@kb-labs/devkit": "link:../../../kb-labs-devkit",
+    "@kb-labs/devkit": "^1.0.0",
     "@types/node": "^24.3.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
@@ -71,5 +70,8 @@
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.11.0"
+  "packageManager": "pnpm@9.11.0",
+  "publishConfig": {
+    "access": "public"
+  }
 }

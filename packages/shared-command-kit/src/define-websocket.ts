@@ -179,7 +179,7 @@ export interface WebSocketDefinition<TConfig = unknown, TIncoming = unknown, TOu
  *
  * // Define message types
  * const StartMsg = defineMessage<{ scope?: string }>('start');
- * const StopMsg = defineMessage<{}>('stop');
+ * const StopMsg = defineMessage<object>('stop');
  *
  * // Create outgoing message builders
  * const ProgressMsg = defineMessage<{ phase: string; progress: number }>('progress');
