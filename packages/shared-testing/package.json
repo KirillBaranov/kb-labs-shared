@@ -28,8 +28,8 @@
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {
-    "@kb-labs/core-platform": "^1.0.0",
-    "@kb-labs/core-runtime": "^1.0.0",
+    "@kb-labs/core-platform": "^1.2.0",
+    "@kb-labs/core-runtime": "^1.2.0",
     "@kb-labs/plugin-contracts": "^1.0.0",
     "vitest": "^3.2.4"
   },

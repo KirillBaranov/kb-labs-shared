@@ -8,9 +8,13 @@ export default defineConfig({
     include: [
       'packages/**/src/**/*.spec.ts',
       'packages/**/src/**/*.test.ts',
+      'packages/**/src/**/__tests__/**/*.spec.ts',
+      'packages/**/src/**/__tests__/**/*.test.ts',
       'packages/**/tests/**/*.test.ts',
       'apps/**/src/**/*.spec.ts',
       'apps/**/src/**/*.test.ts',
+      'apps/**/src/**/__tests__/**/*.spec.ts',
+      'apps/**/src/**/__tests__/**/*.test.ts',
     ],
     coverage: {
       ...nodePreset.test?.coverage,

@@ -48,9 +48,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kb-labs/core-platform": "^1.0.0",
-    "@kb-labs/core-resource-broker": "^1.0.0",
-    "@kb-labs/core-runtime": "^1.0.0",
+    "@kb-labs/core-platform": "^1.2.0",
+    "@kb-labs/core-resource-broker": "^1.2.0",
+    "@kb-labs/core-runtime": "^1.2.0",
     "@kb-labs/plugin-contracts": "^1.0.0",
     "@kb-labs/plugin-runtime": "^1.0.0",
     "@kb-labs/shared-cli-ui": "workspace:*",
