@@ -9,8 +9,8 @@ describe('format helpers', () => {
   });
 
   it('formats timestamp in ISO mode with offset', () => {
-    expect(formatTimestamp(baseDate, { mode: 'iso' })).toBe('2025-01-01T00:05:30.000Z (+00:00)');
-    expect(formatTimestamp(baseDate, { mode: 'iso', includeMilliseconds: false })).toBe(
+    expect(formatTimestamp(baseDate, { mode: 'iso', timeZone: 'UTC' })).toBe('2025-01-01T00:05:30.000Z (+00:00)');
+    expect(formatTimestamp(baseDate, { mode: 'iso', timeZone: 'UTC', includeMilliseconds: false })).toBe(
       '2025-01-01T00:05:30Z (+00:00)',
     );
   });

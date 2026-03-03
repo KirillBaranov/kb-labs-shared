@@ -204,7 +204,8 @@ function getOffsetMinutes(date: Date, timeZone?: string): number {
   const year = lookup.year ?? date.getUTCFullYear();
   const month = (lookup.month ?? date.getUTCMonth() + 1) - 1;
   const day = lookup.day ?? date.getUTCDate();
-  const hour = lookup.hour ?? date.getUTCHours();
+  // Intl.DateTimeFormat with hour12:false may return 24 for midnight, normalize to 0
+  const hour = (lookup.hour ?? date.getUTCHours()) % 24;
   const minute = lookup.minute ?? date.getUTCMinutes();
   const second = lookup.second ?? date.getUTCSeconds();
 
@@ -262,7 +263,8 @@ function getDateParts(date: Date, timeZone?: string): {
     year: lookup.year ?? date.getUTCFullYear(),
     month: lookup.month ?? date.getUTCMonth() + 1,
     day: lookup.day ?? date.getUTCDate(),
-    hour: lookup.hour ?? date.getUTCHours(),
+    // Intl.DateTimeFormat with hour12:false may return 24 for midnight, normalize to 0
+    hour: (lookup.hour ?? date.getUTCHours()) % 24,
     minute: lookup.minute ?? date.getUTCMinutes(),
     second: lookup.second ?? date.getUTCSeconds(),
   };
