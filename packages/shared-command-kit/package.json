@@ -48,18 +48,18 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@kb-labs/core-platform": "^1.2.0",
-    "@kb-labs/core-resource-broker": "^1.2.0",
-    "@kb-labs/core-runtime": "^1.2.0",
-    "@kb-labs/plugin-contracts": "^1.0.0",
-    "@kb-labs/plugin-runtime": "^1.0.0",
+    "@kb-labs/core-platform": "workspace:*",
+    "@kb-labs/core-resource-broker": "workspace:*",
+    "@kb-labs/core-runtime": "workspace:*",
+    "@kb-labs/plugin-contracts": "workspace:*",
+    "@kb-labs/plugin-runtime": "workspace:*",
     "@kb-labs/shared-cli-ui": "workspace:*",
-    "@kb-labs/studio-contracts": "link:../../../kb-labs-studio/packages/studio-contracts",
+    "@kb-labs/studio-contracts": "workspace:*",
     "zod": "^3.23.8",
     "glob": "^11.0.0"
   },
   "devDependencies": {
-    "@kb-labs/devkit": "^1.0.0",
+    "@kb-labs/devkit": "workspace:*",
     "@types/node": "^24.3.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",

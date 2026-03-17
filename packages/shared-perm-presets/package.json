@@ -28,7 +28,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@kb-labs/devkit": "^1.0.0",
+    "@kb-labs/devkit": "workspace:*",
     "typescript": "^5.6.3",
     "tsup": "^8.5.0",
     "rimraf": "^6.0.1",
