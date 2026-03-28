@@ -21,6 +21,17 @@ export interface LoaderOptions {
 
 const SPINNER_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
+// Process-scoped json mode flag. Set by SDK before invoking handler; read by useLoader().
+let _jsonMode = false;
+
+export function setJsonMode(enabled: boolean): void {
+  _jsonMode = enabled;
+}
+
+export function isJsonMode(): boolean {
+  return _jsonMode;
+}
+
 export class Loader {
   private isActive = false;
   private options: LoaderOptions;
@@ -181,5 +192,5 @@ export function showError(text: string, jsonMode = false): void {
  * ```
  */
 export function useLoader(text: string, options?: Partial<LoaderOptions>): Loader {
-  return new Loader({ text, ...options });
+  return new Loader({ text, jsonMode: _jsonMode, ...options });
 }
