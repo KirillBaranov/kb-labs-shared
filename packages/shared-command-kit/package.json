@@ -54,7 +54,6 @@
     "@kb-labs/plugin-contracts": "link:../../../../infra/kb-labs-plugin/packages/plugin-contracts",
     "@kb-labs/plugin-runtime": "link:../../../../infra/kb-labs-plugin/packages/plugin-runtime",
     "@kb-labs/shared-cli-ui": "workspace:*",
-    "@kb-labs/studio-contracts": "link:../../../kb-labs-studio/packages/studio-contracts",
     "zod": "^3.23.8",
     "glob": "^11.0.0"
   },
