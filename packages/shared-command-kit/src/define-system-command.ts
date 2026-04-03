@@ -48,6 +48,7 @@ export interface CommandGroup {
   name: string;
   describe: string;
   commands: Command[];
+  subgroups?: CommandGroup[];
 }
 
 /**

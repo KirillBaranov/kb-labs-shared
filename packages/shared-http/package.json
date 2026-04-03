@@ -27,6 +27,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@kb-labs/core-contracts": "link:../../../kb-labs-core/packages/core-contracts",
     "zod": "^4.0.0",
     "zod-to-json-schema": "^3.25.0"
   },
