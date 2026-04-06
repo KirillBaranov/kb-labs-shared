@@ -1,6 +1,6 @@
 {
   "name": "@kb-labs/shared-tool-kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Tool factory and mock utilities for KB Labs agent tool development",
   "main": "./dist/index.js",
