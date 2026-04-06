@@ -1,6 +1,6 @@
 {
   "name": "@kb-labs/shared-http",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Shared Fastify/OpenAPI utilities for KB Labs HTTP services",
   "main": "./dist/index.js",
@@ -38,9 +38,15 @@
     "fastify-type-provider-zod": "^6.0.0"
   },
   "peerDependenciesMeta": {
-    "@fastify/swagger": { "optional": false },
-    "@fastify/swagger-ui": { "optional": false },
-    "fastify-type-provider-zod": { "optional": false }
+    "@fastify/swagger": {
+      "optional": false
+    },
+    "@fastify/swagger-ui": {
+      "optional": false
+    },
+    "fastify-type-provider-zod": {
+      "optional": false
+    }
   },
   "devDependencies": {
     "@kb-labs/devkit": "link:../../../../infra/kb-labs-devkit",
