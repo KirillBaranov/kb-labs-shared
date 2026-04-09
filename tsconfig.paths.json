@@ -3,6 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@kb-labs/core-contracts": [
+        "../kb-labs-core/packages/core-contracts/src/index.ts"
+      ],
+      "@kb-labs/core-contracts/*": [
+        "../kb-labs-core/packages/core-contracts/src/*"
+      ],
       "@kb-labs/core-platform": [
         "../kb-labs-core/packages/core-platform/src/index.ts"
       ],
@@ -38,12 +44,6 @@
       ],
       "@kb-labs/shared-cli-ui/*": [
         "packages/shared-cli-ui/src/*"
-      ],
-      "@kb-labs/studio-contracts": [
-        "../kb-labs-studio/packages/studio-contracts/src/index.ts"
-      ],
-      "@kb-labs/studio-contracts/*": [
-        "../kb-labs-studio/packages/studio-contracts/src/*"
       ]
     }
   }
