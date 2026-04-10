@@ -55,7 +55,7 @@ describe('readSse', () => {
       events.push(ev);
     }
     expect(events.map((e) => e.event)).toEqual(['started', 'progress', 'done']);
-    expect(events[0].json).toEqual({ id: 1 });
-    expect(events[2].json).toEqual({ ok: true });
+    expect(events[0]?.json).toEqual({ id: 1 });
+    expect(events[2]?.json).toEqual({ ok: true });
   });
 });
